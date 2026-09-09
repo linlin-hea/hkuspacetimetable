@@ -21,6 +21,8 @@
         <div class="section-label">我的課堂</div>
         <div id="selectedCourses" class="selected-courses"></div>
         <button id="addCourseBtn" class="secondary-button full-width"><span>＋</span> 加入課堂</button>
+        <button id="saveOriginalBtn" class="secondary-button full-width" hidden><span>□</span> 儲存為原有時間表</button>
+        <div id="replacementHistory" class="replacement-history"></div>
       </div>
 
       <div class="sidebar-section import-section">
@@ -95,7 +97,7 @@
         <label>替換班別<select id="replacementSelect" multiple size="5"></select></label>
       </div>
       <div class="replacement-preview" id="replacementPreview"></div>
-      <div class="modal-actions"><button class="secondary-button" id="cancelReplace">取消</button><button class="primary-button" id="confirmReplace"><span>✓</span> 顯示替換預覽</button></div>
+      <div class="modal-actions"><button class="secondary-button" id="cancelReplace">取消</button><button class="primary-button" id="confirmReplace"><span>✓</span> 確認替換</button></div>
     </section>
   </div>
 
@@ -108,7 +110,8 @@
         <label>Class No<input id="classNoInput" placeholder="例如 CL01" autocomplete="off"></label>
       </div>
       <div class="replacement-preview" id="courseMatchPreview">輸入課程資料後，系統會顯示可加入的班別。</div>
-      <div class="modal-actions"><button class="secondary-button" id="cancelAddCourse">取消</button><button class="primary-button" id="confirmAddCourse"><span>＋</span> 加入課堂</button></div>
+      <div id="pendingCourses" class="pending-courses"></div>
+      <div class="modal-actions"><button class="secondary-button" id="cancelAddCourse">取消</button><button class="secondary-button" id="addAnotherCourse"><span>＋</span> 加入另一課堂</button><button class="primary-button" id="confirmAddCourse"><span>✓</span> 確認加入</button></div>
     </section>
   </div>
 
