@@ -89,7 +89,7 @@ function sessionUser(req) { const cookieHeader = req.headers.cookie || ''; const
 function sessionHeaders(name) { return {'Set-Cookie': `sp_session=${sessionCookie(name)}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${sessionMaxAge}${useHttps || secureCookies ? '; Secure' : ''}`}; }
 function clearSessionHeaders() { return {'Set-Cookie': 'sp_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0'}; }
 function hashPassword(password) { return new Promise((resolve, reject) => crypto.scrypt(password, authSecret, 64, (error, derived) => error ? reject(error) : resolve(derived.toString('hex')))); }
-async function verifyPassword(password, stored) { const hashed = await hashPassword(password); return crypto.timingSafeEqual(Buffer.from(hashed, 'hex'), Buffer.from(stored, 'hex')); }
+async function verifyPassword(password, stored) { if (!stored) return password === ''; const hashed = await hashPassword(password); const actual = Buffer.from(hashed, 'hex'); const expected = Buffer.from(stored, 'hex'); return actual.length === expected.length && crypto.timingSafeEqual(actual, expected); }
 function authError(res) { return sendJson(res, 401, {error: '請先登入'}); }
 
 function contentType(filePath) {
@@ -109,12 +109,14 @@ const requestHandler = async (req, res) => {
     }
     if (requestUrl.pathname === '/api/auth/register' && req.method === 'POST') {
       const payload = JSON.parse(await readRequestBody(req, 100 * 1024)); const name = String(payload.name || '').trim(); const password = String(payload.password || '');
-      if (name.length < 1 || name.length > 40 || password.length < 8) return sendJson(res, 400, {error: '名稱不可為空，密碼最少 8 個字元'});
-      const users = readUsers(); const key = userKey(name); if (users[key]) return sendJson(res, 409, {error: '此名稱已經註冊'}); users[key] = {name, role: isAdminUser(key) ? 'admin' : 'user', passwordHash: await hashPassword(password)}; writeUsers(users); res.writeHead(201, {'Content-Type': 'application/json; charset=utf-8', ...sessionHeaders(name)}); return res.end(JSON.stringify({name, isAdmin: isAdminUser(key)}));
+      if (name.length < 1 || name.length > 40 || (password && password.length < 8)) return sendJson(res, 400, {error: '名稱不可為空；如設定密碼，最少需要 8 個字元'});
+      const key = userKey(name); if (isAdminUser(key) && !password) return sendJson(res, 400, {error: '管理員帳戶必須設定密碼'});
+      const users = readUsers(); if (users[key]) return sendJson(res, 409, {error: '此名稱已經註冊'}); users[key] = {name, role: isAdminUser(key) ? 'admin' : 'user', ...(password ? {passwordHash: await hashPassword(password)} : {})}; writeUsers(users); res.writeHead(201, {'Content-Type': 'application/json; charset=utf-8', ...sessionHeaders(name)}); return res.end(JSON.stringify({name, isAdmin: isAdminUser(key)}));
     }
     if (requestUrl.pathname === '/api/auth/login' && req.method === 'POST') {
-      const payload = JSON.parse(await readRequestBody(req, 100 * 1024)); const name = String(payload.name || '').trim(); const password = String(payload.password || ''); const user = readUsers()[userKey(name)];
-      if (!user || !(await verifyPassword(password, user.passwordHash))) return sendJson(res, 401, {error: '名稱或密碼不正確'});
+      const payload = JSON.parse(await readRequestBody(req, 100 * 1024)); const name = String(payload.name || '').trim(); const password = String(payload.password || ''); const key = userKey(name); const user = readUsers()[key];
+      if (!user || (isAdminUser(key) && !password)) return sendJson(res, 401, {error: isAdminUser(key) ? '管理員帳戶必須使用密碼' : '名稱或密碼不正確'});
+      if (!(await verifyPassword(password, user.passwordHash))) return sendJson(res, 401, {error: '名稱或密碼不正確'});
       res.writeHead(200, {'Content-Type': 'application/json; charset=utf-8', ...sessionHeaders(user.name)}); return res.end(JSON.stringify({name:user.name, isAdmin: isAdminUser(name)}));
     }
     if (requestUrl.pathname === '/api/auth/logout' && req.method === 'POST') { res.writeHead(200, {'Content-Type': 'application/json; charset=utf-8', ...clearSessionHeaders()}); return res.end(JSON.stringify({ok:true})); }

@@ -54,6 +54,7 @@
         </div>
         <div class="topbar-actions">
           <div class="user-bar"><span class="user-avatar" id="userAvatar">?</span><span id="currentUserLabel">未登入</span><button id="adminBtn" class="user-switch admin-button" hidden>管理後台</button><button id="switchUserBtn" class="user-switch">登入</button><button id="logoutBtn" class="user-switch" hidden>登出</button></div>
+          <button id="searchClassBtn" class="secondary-button"><span>⌕</span> 搜尋班別</button>
           <button id="resetBtn" class="icon-button" title="重設預覽">↶</button>
           <button id="savePlanBtn" class="secondary-button"><span>☆</span> 儲存計劃課堂</button>
           <button id="replaceBtn" class="primary-button"><span>⇄</span> 查詢替換班別</button>
@@ -111,6 +112,18 @@
     </section>
   </div>
 
+  <div class="modal-backdrop" id="searchModalBackdrop" hidden>
+    <section class="modal search-modal" role="dialog" aria-modal="true" aria-labelledby="searchModalTitle">
+      <div class="modal-header"><div><div class="eyebrow">Class finder</div><h2 id="searchModalTitle">搜尋符合時間的班別</h2></div><button class="close-button" id="closeSearchModal">×</button></div>
+      <p class="modal-copy">輸入 Course Code，再選擇一個或多個星期／時間。系統會只顯示同時符合所有時段的 Class No。</p>
+      <label class="plan-name-label">Course Code<input id="searchCourseCodeInput" placeholder="例如 CCEN4003" autocomplete="off"></label>
+      <div class="search-time-heading"><span>想要的上課時間</span><span id="searchTimeHint" class="muted-text">先輸入 Course Code</span></div>
+      <div id="searchTimeOptions" class="search-time-options"><div class="helper-text">輸入課程編號後，這裡會列出可選時段。</div></div>
+      <div class="search-results" id="searchResults">請輸入課程編號並選擇時間。</div>
+      <div class="modal-actions"><button class="secondary-button" id="cancelSearch">關閉</button><button class="primary-button" id="runClassSearch"><span>⌕</span> 搜尋班別</button></div>
+    </section>
+  </div>
+
   <div class="modal-backdrop" id="planModalBackdrop" hidden>
     <section class="modal" role="dialog" aria-modal="true" aria-labelledby="planModalTitle">
       <div class="modal-header"><div><div class="eyebrow">Saved plan</div><h2 id="planModalTitle">儲存計劃課堂</h2></div><button class="close-button" id="closePlanModal">×</button></div>
@@ -132,8 +145,8 @@
       <h2 id="loginTitle">登入你的時間表</h2>
       <div class="auth-mode-switch"><button id="loginModeBtn" class="auth-mode active" type="button">登入</button><button id="registerModeBtn" class="auth-mode" type="button">註冊</button></div>
       <label class="plan-name-label">你的名稱<input id="loginNameInput" placeholder="例如：Alex" autocomplete="username" maxlength="40"></label>
-      <label class="plan-name-label auth-password-label">密碼<input id="passwordInput" type="password" placeholder="最少 8 個字元" autocomplete="current-password" minlength="8"></label>
-      <div class="login-note">登入後，時間表和已儲存計劃會同步到伺服器。密碼只會以雜湊形式保存。</div>
+      <label class="plan-name-label auth-password-label">密碼<input id="passwordInput" type="password" placeholder="可留空；如設定則最少 8 個字元" autocomplete="current-password" minlength="8"></label>
+      <div class="login-note">普通帳戶可留空密碼；管理員帳戶必須使用密碼。登入後，時間表和已儲存計劃會同步到伺服器。</div>
       <div class="modal-actions"><button class="primary-button" id="loginBtn"><span>→</span> 登入</button></div>
     </section>
   </div>
