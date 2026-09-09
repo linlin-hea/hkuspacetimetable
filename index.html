@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HKU SPACE 課堂時間表</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">S</div>
+        <div>
+          <div class="brand-title">SPACE Planner</div>
+          <div class="brand-subtitle">Semester 1 · 2026-27</div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-label">我的課堂</div>
+        <div id="selectedCourses" class="selected-courses"></div>
+        <button id="addCourseBtn" class="secondary-button full-width"><span>＋</span> 加入課堂</button>
+      </div>
+
+      <div class="sidebar-section import-section">
+        <div class="section-label">資料工具</div>
+        <label class="upload-button pdf-upload-button" for="pdfInput"><span>↥</span> 匯入新年度 PDF</label>
+        <input id="pdfInput" type="file" accept="application/pdf,.pdf" hidden>
+        <div class="helper-text">上傳新的 Master Timetable PDF 後，會取代目前課程資料。</div>
+        <label class="upload-button" for="csvInput"><span>↥</span> 匯入 CSV 課堂資料</label>
+        <input id="csvInput" type="file" accept=".csv,text/csv" hidden>
+        <div class="helper-text">欄位：Course Code, Class No, Course Name, Weekday, Time, Room</div>
+      </div>
+
+      <div class="sidebar-section saved-section">
+        <div class="section-label">已儲存計劃</div>
+        <div id="savedPlans" class="saved-plans"></div>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="legend-row"><span class="legend-dot current"></span> 已選課堂</div>
+        <div class="legend-row"><span class="legend-dot alternative"></span> 替換預覽</div>
+        <div class="legend-row"><span class="legend-dot muted"></span> 可選時段</div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div>
+          <div class="eyebrow">Master Timetable</div>
+          <h1>我的課堂時間表</h1>
+          <p class="subtitle">快速檢視課堂安排，並安全比較替換班別。</p>
+        </div>
+        <div class="topbar-actions">
+          <div class="user-bar"><span class="user-avatar" id="userAvatar">?</span><span id="currentUserLabel">未登入</span><button id="adminBtn" class="user-switch admin-button" hidden>管理後台</button><button id="switchUserBtn" class="user-switch">登入</button><button id="logoutBtn" class="user-switch" hidden>登出</button></div>
+          <button id="resetBtn" class="icon-button" title="重設預覽">↶</button>
+          <button id="savePlanBtn" class="secondary-button"><span>☆</span> 儲存計劃課堂</button>
+          <button id="replaceBtn" class="primary-button"><span>⇄</span> 查詢替換班別</button>
+        </div>
+      </header>
+
+      <section class="stats-row">
+        <div class="stat-card"><span class="stat-label">已選課堂</span><strong id="courseCount">0</strong><span class="stat-note">門</span></div>
+        <div class="stat-card"><span class="stat-label">本週上課</span><strong id="weeklySessions">0</strong><span class="stat-note">堂</span></div>
+        <div class="stat-card"><span class="stat-label">最長連堂</span><strong id="maxStreak">0</strong><span class="stat-note">堂</span></div>
+        <div class="status-card" id="statusCard"><span class="status-dot"></span><div><strong>安排狀態</strong><span id="statusText">尚未加入課堂</span></div></div>
+      </section>
+
+      <section class="workspace">
+        <div class="workspace-header">
+          <div>
+            <h2>每週視圖</h2>
+            <span class="muted-text">週一至週六 · 每堂按 1.5 小時核算</span>
+          </div>
+          <div class="view-caption"><span class="mini-dot"></span> 時間由 08:30 至 19:00</div>
+        </div>
+        <div class="timetable" id="timetable"></div>
+      </section>
+
+      <section class="info-strip">
+        <div class="info-icon">i</div>
+        <div><strong>替換限制已啟用</strong><span>AL、BL、CL 只能替換相同類型；KEC、KED、KEE、KEK、CIT 可互換，ADC、UNC 可互換，兩組中心之間不能跨區。</span></div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="modalBackdrop" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-header"><div><div class="eyebrow">Class replacement</div><h2 id="modalTitle">查詢替換班別</h2></div><button class="close-button" id="closeModal">×</button></div>
+      <p class="modal-copy">選擇一個已加入的課堂，再一次選取同一 Course Code 的多個 Class No 進行比較。</p>
+      <div class="form-grid">
+        <label>原有課堂<select id="originalSelect"></select></label>
+        <label>替換班別<select id="replacementSelect" multiple size="5"></select></label>
+      </div>
+      <div class="replacement-preview" id="replacementPreview"></div>
+      <div class="modal-actions"><button class="secondary-button" id="cancelReplace">取消</button><button class="primary-button" id="confirmReplace"><span>✓</span> 顯示替換預覽</button></div>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="addModalBackdrop" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="addModalTitle">
+      <div class="modal-header"><div><div class="eyebrow">Add course</div><h2 id="addModalTitle">加入我的課堂</h2></div><button class="close-button" id="closeAddModal">×</button></div>
+      <p class="modal-copy">輸入 PDF 課堂資料中的 Course Code 及 Class No。</p>
+      <div class="form-grid">
+        <label>Course Code<input id="courseCodeInput" placeholder="例如 CCAH3003" autocomplete="off"></label>
+        <label>Class No<input id="classNoInput" placeholder="例如 CL01" autocomplete="off"></label>
+      </div>
+      <div class="replacement-preview" id="courseMatchPreview">輸入課程資料後，系統會顯示可加入的班別。</div>
+      <div class="modal-actions"><button class="secondary-button" id="cancelAddCourse">取消</button><button class="primary-button" id="confirmAddCourse"><span>＋</span> 加入課堂</button></div>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="planModalBackdrop" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="planModalTitle">
+      <div class="modal-header"><div><div class="eyebrow">Saved plan</div><h2 id="planModalTitle">儲存計劃課堂</h2></div><button class="close-button" id="closePlanModal">×</button></div>
+      <p class="modal-copy">儲存目前的替換安排，之後可以從左側載入或編輯。</p>
+      <label class="plan-name-label">計劃名稱<input id="planNameInput" placeholder="例如：星期五下午替換方案" autocomplete="off"></label>
+      <div class="form-grid plan-form-grid">
+        <label>原有課堂<select id="planOriginalSelect"></select></label>
+        <label>替換班別<select id="planReplacementSelect"></select></label>
+      </div>
+      <div class="replacement-preview" id="planPreview"></div>
+      <div class="modal-actions"><button class="secondary-button" id="cancelPlan">取消</button><button class="primary-button" id="confirmPlan"><span>✓</span> 儲存計劃</button></div>
+    </section>
+  </div>
+
+  <div class="modal-backdrop login-backdrop" id="loginBackdrop" hidden>
+    <section class="modal login-modal" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+      <div class="brand-login-mark">S</div>
+      <div class="eyebrow">Personal timetable</div>
+      <h2 id="loginTitle">登入你的時間表</h2>
+      <div class="auth-mode-switch"><button id="loginModeBtn" class="auth-mode active" type="button">登入</button><button id="registerModeBtn" class="auth-mode" type="button">註冊</button></div>
+      <label class="plan-name-label">你的名稱<input id="loginNameInput" placeholder="例如：Alex" autocomplete="username" maxlength="40"></label>
+      <label class="plan-name-label auth-password-label">密碼<input id="passwordInput" type="password" placeholder="最少 8 個字元" autocomplete="current-password" minlength="8"></label>
+      <div class="login-note">登入後，時間表和已儲存計劃會同步到伺服器。密碼只會以雜湊形式保存。</div>
+      <div class="modal-actions"><button class="primary-button" id="loginBtn"><span>→</span> 登入</button></div>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="adminBackdrop" hidden>
+    <section class="modal admin-modal" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
+      <div class="modal-header"><div><div class="eyebrow">Admin Console</div><h2 id="adminTitle">所有用戶資料</h2></div><button class="close-button" id="closeAdminModal">×</button></div>
+      <p class="modal-copy">只顯示帳戶名稱、已選課堂及儲存計劃，不顯示密碼或密碼雜湊。</p>
+      <div class="admin-toolbar"><span id="adminSummary">讀取中...</span><button class="secondary-button" id="refreshAdmin">↻ 重新整理</button></div>
+      <div class="admin-users" id="adminUsersList"></div>
+    </section>
+  </div>
+
+  <div class="toast" id="toast" role="status"></div>
+  <script src="app.js"></script>
+</body>
+</html>
