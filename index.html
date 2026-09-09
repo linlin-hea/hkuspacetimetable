@@ -141,6 +141,15 @@
     </section>
   </div>
 
+  <div class="modal-backdrop" id="originalPlanModalBackdrop" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="originalPlanModalTitle">
+      <div class="modal-header"><div><div class="eyebrow">Original schedule</div><h2 id="originalPlanModalTitle">編輯原有計劃</h2></div><button class="close-button" id="closeOriginalPlanModal">×</button></div>
+      <p class="modal-copy">選擇要保留在「原有計劃」中的課堂。課堂時間不能重疊。</p>
+      <div id="originalPlanCourses" class="original-plan-courses"></div>
+      <div class="modal-actions"><button class="secondary-button" id="cancelOriginalPlan">取消</button><button class="primary-button" id="confirmOriginalPlan"><span>✓</span> 儲存修改</button></div>
+    </section>
+  </div>
+
   <div class="modal-backdrop login-backdrop" id="loginBackdrop" hidden>
     <section class="modal login-modal" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
       <div class="brand-login-mark">S</div>
