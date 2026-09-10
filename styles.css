@@ -217,6 +217,11 @@ h1, h2, p { margin: 0; } h1 { color: var(--navy); font-size: 28px; line-height: 
 body.sidebar-collapsed .sidebar { transform: translateX(-100%); }
 body.sidebar-collapsed .main-content { width: 100%; margin-left: 0; }
 .sidebar-toggle-button { display: inline-flex; align-items: center; gap: 5px; }
+.sidebar-collapse-button { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; margin-top: 14px; padding: 8px; border: 1px solid rgba(255,255,255,.2); border-radius: 3px; background: rgba(255,255,255,.08); color: #eaf3f8; font-size: 12px; font-weight: 750; }
+.sidebar-collapse-button:hover { background: rgba(255,255,255,.16); }
+.sidebar-handle-button { position: fixed; top: 50%; left: 294px; z-index: 31; width: 26px; height: 58px; transform: translateY(-50%); border: 1px solid rgba(255,255,255,.4); border-left: 0; border-radius: 0 8px 8px 0; background: var(--navy); color: #fff; font-size: 25px; line-height: 1; box-shadow: 2px 0 10px rgba(20,43,60,.18); transition: left .22s ease; }
+.sidebar-handle-button:hover { background: var(--blue); }
+body.sidebar-collapsed .sidebar-handle-button { left: 0; border-left: 1px solid rgba(255,255,255,.4); }
 .notice-button { border: 1px solid #d6a932; color: #8a6500; }
 .notice-modal { width: min(680px, 100%); }
 .notice-content { color: var(--ink); font-size: 12px; line-height: 1.75; }
@@ -230,6 +235,7 @@ body.sidebar-collapsed .main-content { width: 100%; margin-left: 0; }
   .sidebar { width: 270px; flex-basis: 270px; }
   .main-content { width: calc(100% - 270px); margin-left: 270px; }
   body.sidebar-collapsed .main-content { width: 100%; margin-left: 0; }
+  .sidebar-handle-button { left: 254px; }
 }
 @media (max-width: 900px) {
   .app-shell { display: block; }
@@ -240,6 +246,7 @@ body.sidebar-collapsed .main-content { width: 100%; margin-left: 0; }
   .workspace { overflow-x: auto; }
   .timetable { min-width: 880px; }
   body.sidebar-collapsed .main-content { width: 100%; margin-left: 0; }
+  .sidebar-handle-button { left: 234px; }
 }
 @media (max-width: 600px) {
   .sidebar { width: 235px; padding: 18px 11px; }
