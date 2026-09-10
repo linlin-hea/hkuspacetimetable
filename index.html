@@ -28,7 +28,7 @@
       <div class="sidebar-section">
         <div class="section-label">我的課堂</div>
         <div id="selectedCourses" class="selected-courses"></div>
-        <button id="addCourseBtn" class="secondary-button full-width"><span>＋</span> 加入課堂</button>
+        <button id="addCourseBtn" class="secondary-button full-width"><span>＋</span> 加入原有課堂</button>
         <button id="saveOriginalBtn" class="secondary-button full-width" hidden><span>□</span> 儲存為原有時間表</button>
         <div id="replacementHistory" class="replacement-history"></div>
       </div>
@@ -87,7 +87,7 @@
         <div class="stat-card"><span class="stat-label">已選課堂</span><strong id="courseCount">0</strong><span class="stat-note">門</span></div>
         <div class="stat-card"><span class="stat-label">本週上課</span><strong id="weeklySessions">0</strong><span class="stat-note">堂</span></div>
         <div class="stat-card"><span class="stat-label">最長連堂</span><strong id="maxStreak">0</strong><span class="stat-note">堂</span></div>
-        <div class="status-card" id="statusCard"><span class="status-dot"></span><div><strong>安排狀態</strong><span id="statusText">尚未加入課堂</span></div></div>
+        <div class="status-card" id="statusCard"><span class="status-dot"></span><div><strong>安排狀態</strong><span id="statusText">尚未加入原有課堂</span></div></div>
       </section>
 
       <section class="workspace">
@@ -112,7 +112,7 @@
   <div class="modal-backdrop" id="modalBackdrop" hidden>
     <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
       <div class="modal-header"><div><div class="eyebrow">Class replacement</div><h2 id="modalTitle">查詢替換班別</h2></div><button class="close-button" id="closeModal">×</button></div>
-      <p class="modal-copy">選擇一個已加入的課堂，再一次選取同一 Course Code 的多個 Class No 進行比較。</p>
+      <p class="modal-copy">選擇一個已加入原有課堂，再一次選取同一 Course Code 的多個 Class No 進行比較。</p>
       <div class="form-grid">
         <label>原有課堂<select id="originalSelect"></select></label>
         <label>替換班別<select id="replacementSelect" multiple size="5"></select></label>
@@ -124,15 +124,15 @@
 
   <div class="modal-backdrop" id="addModalBackdrop" hidden>
     <section class="modal" role="dialog" aria-modal="true" aria-labelledby="addModalTitle">
-      <div class="modal-header"><div><div class="eyebrow">Add course</div><h2 id="addModalTitle">加入我的課堂</h2></div><button class="close-button" id="closeAddModal">×</button></div>
+      <div class="modal-header"><div><div class="eyebrow">Add course</div><h2 id="addModalTitle">加入原有課堂</h2></div><button class="close-button" id="closeAddModal">×</button></div>
       <p class="modal-copy">輸入 PDF 課堂資料中的 Course Code 及 Class No。</p>
       <div class="form-grid">
         <label>Course Code<input id="courseCodeInput" placeholder="例如 CCAH3003" autocomplete="off"></label>
         <label>Class No<input id="classNoInput" placeholder="例如 CL01" autocomplete="off"></label>
       </div>
-      <div class="replacement-preview" id="courseMatchPreview">輸入課程資料後，系統會顯示可加入的班別。</div>
+      <div class="replacement-preview" id="courseMatchPreview">輸入課程資料後，系統會顯示可加入原有課堂的班別。</div>
       <div id="pendingCourses" class="pending-courses"></div>
-      <div class="modal-actions"><button class="secondary-button" id="cancelAddCourse">取消</button><button class="secondary-button" id="addAnotherCourse"><span>＋</span> 加入另一課堂</button><button class="primary-button" id="confirmAddCourse"><span>✓</span> 確認加入</button></div>
+      <div class="modal-actions"><button class="secondary-button" id="cancelAddCourse">取消</button><button class="secondary-button" id="addAnotherCourse"><span>＋</span> 加入另一原有課堂</button><button class="primary-button" id="confirmAddCourse"><span>✓</span> 確認加入原有課堂</button></div>
     </section>
   </div>
 
