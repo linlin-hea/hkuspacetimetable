@@ -116,6 +116,7 @@ h1, h2, p { margin: 0; } h1 { color: var(--navy); font-size: 28px; line-height: 
 .auth-password-label input { letter-spacing: .08em; }
 .form-grid select[multiple] { min-height: 126px; padding: 6px; }
 .search-modal { width: min(680px, 100%); }
+.teacher-search-modal { width: min(760px, 100%); }
 .search-time-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-top: 18px; color: var(--navy); font-size: 12px; font-weight: 750; }
 .search-time-heading .muted-text { margin: 0; font-size: 10px; font-weight: 500; }
 .search-time-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; max-height: 220px; overflow: auto; margin-top: 9px; padding: 2px; }
@@ -134,6 +135,12 @@ h1, h2, p { margin: 0; } h1 { color: var(--navy); font-size: 28px; line-height: 
 .remove-pending:hover { color: var(--danger); }
 .search-result-name { margin-left: 8px; color: var(--muted); }
 .search-result-sessions { margin-top: 4px; }
+.teacher-result { padding: 10px 0; border-bottom: 1px solid var(--line); }
+.teacher-result:last-child { border-bottom: 0; }
+.teacher-result strong { color: var(--navy); font-size: 14px; }
+.teacher-result-course { margin-top: 8px; color: var(--navy); font-size: 12px; font-weight: 750; }
+.teacher-result-sessions { margin-top: 3px; color: var(--muted); font-size: 11px; }
+.teacher-result-note { margin-top: 7px; padding: 7px 9px; background: #fffaf0; border-left: 3px solid #d27a36; color: var(--muted); font-size: 11px; }
 .admin-modal { width: min(720px, 100%); }
 .admin-toolbar { display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: 11px; border-bottom: 1px solid var(--line); padding-bottom: 12px; }
 .admin-users { display: grid; gap: 9px; max-height: 52vh; overflow: auto; padding-top: 13px; }

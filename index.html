@@ -57,6 +57,7 @@
         <div class="topbar-actions">
           <div class="user-bar"><span class="user-avatar" id="userAvatar">?</span><span id="currentUserLabel">未登入</span><button id="adminBtn" class="user-switch admin-button" hidden>管理後台</button><button id="switchUserBtn" class="user-switch">登入</button><button id="logoutBtn" class="user-switch" hidden>登出</button></div>
           <button id="searchClassBtn" class="secondary-button"><span>⌕</span> 搜尋班別</button>
+          <button id="searchTeacherBtn" class="secondary-button"><span>⌕</span> 搜尋老師</button>
           <button id="resetBtn" class="icon-button" title="重設預覽">↶</button>
           <button id="savePlanBtn" class="secondary-button"><span>☆</span> 儲存計劃課堂</button>
           <button id="saveCurrentPlanBtn" class="secondary-button" hidden><span>✓</span> 儲存到當前計劃</button>
@@ -121,8 +122,19 @@
       <div class="modal-header"><div><div class="eyebrow">Course information</div><h2 id="courseInfoModalTitle">課堂資訊</h2></div><button class="close-button" id="closeCourseInfoModal">×</button></div>
       <div id="courseInfoSessions" class="plan-info-courses"></div>
       <label class="plan-name-label">課堂導師<input id="courseInstructorInput" placeholder="例如：Blaine" autocomplete="off"></label>
+      <label class="plan-notes-label">導師其他任教班別<textarea id="courseTeacherClassesInput" rows="3" placeholder="例如：CCEN4003 CL01、CCEN4003 CL02；每行或逗號分隔"></textarea></label>
       <label class="plan-notes-label">老師評價／備注<textarea id="courseTeacherNoteInput" rows="4" placeholder="輸入你對老師的評價或其他備注"></textarea></label>
       <div class="modal-actions"><button class="secondary-button" id="cancelCourseInfo">取消</button><button class="primary-button" id="saveCourseInfo"><span>✓</span> 儲存課堂資訊</button></div>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="teacherSearchModalBackdrop" hidden>
+    <section class="modal teacher-search-modal" role="dialog" aria-modal="true" aria-labelledby="teacherSearchModalTitle">
+      <div class="modal-header"><div><div class="eyebrow">Teacher finder</div><h2 id="teacherSearchModalTitle">搜尋老師</h2></div><button class="close-button" id="closeTeacherSearchModal">×</button></div>
+      <p class="modal-copy">輸入導師姓名，即可查看他／她所教授的課程、班別、時間及教室。</p>
+      <label class="plan-name-label">導師姓名<input id="teacherSearchInput" placeholder="例如：Blaine" autocomplete="off"></label>
+      <div class="search-results teacher-search-results" id="teacherSearchResults">請輸入導師姓名。</div>
+      <div class="modal-actions"><button class="secondary-button" id="cancelTeacherSearch">關閉</button><button class="primary-button" id="runTeacherSearch"><span>⌕</span> 搜尋老師</button></div>
     </section>
   </div>
 
