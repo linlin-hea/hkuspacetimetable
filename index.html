@@ -18,11 +18,11 @@
       </div>
       <button id="sidebarCollapseBtn" class="sidebar-collapse-button" aria-expanded="true"><span>‹</span> 收起側欄</button>
 
-      <div class="sidebar-section semester-notice" role="note">
-        <div class="section-label">時間表資料</div>
-        <strong>HKU SPACE 2026-27 第一學期</strong>
-        <span>本網站課堂資料根據以上時間表整理。</span>
-        <input id="courseCatalogSearch" type="hidden">
+      <div class="sidebar-section course-overview-section">
+        <div class="section-label">我的課程</div>
+        <div class="course-search-help">按 Course Code 前四個英文字母分類及搜尋課程。</div>
+        <label class="catalog-search"><span>⌕</span><input id="courseCatalogSearch" placeholder="搜尋 Course Code 或課程名稱" autocomplete="off"></label>
+        <div id="courseCatalog" class="course-catalog"></div>
       </div>
 
       <div class="sidebar-section">
@@ -33,27 +33,31 @@
         <div id="replacementHistory" class="replacement-history"></div>
       </div>
 
+      <div class="sidebar-section saved-section">
+        <div class="section-label">已儲存計劃</div>
+        <div id="savedPlans" class="saved-plans"></div>
+      </div>
+
       <div class="sidebar-section import-section">
         <div class="section-label">資料工具</div>
         <label class="upload-button pdf-upload-button" for="pdfInput"><span>↥</span> 匯入新年度 PDF</label>
         <input id="pdfInput" type="file" accept="application/pdf,.pdf" hidden>
         <div class="helper-text">上傳新的 Master Timetable PDF 後，會取代目前課程資料。</div>
-        <label class="upload-button" for="csvInput"><span>↥</span> 匯入 CSV 課堂資料</label>
         <input id="csvInput" type="file" accept=".csv,text/csv" hidden>
-        <div class="helper-text">欄位：Course Code, Class No, Course Name, Weekday, Time, Room</div>
         <button id="clearTeacherDataBtn" class="secondary-button full-width"><span>⌫</span> 清理老師任教資料</button>
         <button id="clearAcademicDataBtn" class="secondary-button full-width"><span>⌫</span> 清理舊學年課堂</button>
-      </div>
-
-      <div class="sidebar-section saved-section">
-        <div class="section-label">已儲存計劃</div>
-        <div id="savedPlans" class="saved-plans"></div>
       </div>
 
       <div class="sidebar-footer">
         <div class="legend-row"><span class="legend-dot current"></span> 已選課堂</div>
         <div class="legend-row"><span class="legend-dot alternative"></span> 替換預覽</div>
         <div class="legend-row"><span class="legend-dot muted"></span> 可選時段</div>
+      </div>
+
+      <div class="sidebar-section semester-notice" role="note">
+        <div class="section-label">時間表資料</div>
+        <strong>HKU SPACE 2026-27 第一學期</strong>
+        <span>本網站課堂資料根據以上時間表整理。</span>
       </div>
     </aside>
 
