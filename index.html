@@ -84,7 +84,7 @@
 
       <section class="info-strip">
         <div class="info-icon">i</div>
-        <div><strong>替換限制已啟用</strong><span>AL、BL、CL 只能替換相同類型；KEC、KED、KEE、KEK、CIT 可互換，ADC、UNC 可互換，兩組中心之間不能跨區。</span></div>
+        <div><strong>替換限制已啟用</strong><span>AL、BL、CL 只能替換相同類型；替換班別必須位於同一中心，KEC、KED、KEE、KEK、CIT、KWC、ADC、UNC 之間均不能跨中心互換。</span></div>
       </section>
     </main>
   </div>
@@ -113,6 +113,16 @@
       <div class="replacement-preview" id="courseMatchPreview">輸入課程資料後，系統會顯示可加入的班別。</div>
       <div id="pendingCourses" class="pending-courses"></div>
       <div class="modal-actions"><button class="secondary-button" id="cancelAddCourse">取消</button><button class="secondary-button" id="addAnotherCourse"><span>＋</span> 加入另一課堂</button><button class="primary-button" id="confirmAddCourse"><span>✓</span> 確認加入</button></div>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="courseInfoModalBackdrop" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="courseInfoModalTitle">
+      <div class="modal-header"><div><div class="eyebrow">Course information</div><h2 id="courseInfoModalTitle">課堂資訊</h2></div><button class="close-button" id="closeCourseInfoModal">×</button></div>
+      <div id="courseInfoSessions" class="plan-info-courses"></div>
+      <label class="plan-name-label">課堂導師<input id="courseInstructorInput" placeholder="例如：Blaine" autocomplete="off"></label>
+      <label class="plan-notes-label">老師評價／備注<textarea id="courseTeacherNoteInput" rows="4" placeholder="輸入你對老師的評價或其他備注"></textarea></label>
+      <div class="modal-actions"><button class="secondary-button" id="cancelCourseInfo">取消</button><button class="primary-button" id="saveCourseInfo"><span>✓</span> 儲存課堂資訊</button></div>
     </section>
   </div>
 
