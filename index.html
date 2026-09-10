@@ -59,6 +59,7 @@
           <button id="searchClassBtn" class="secondary-button"><span>⌕</span> 搜尋班別</button>
           <button id="resetBtn" class="icon-button" title="重設預覽">↶</button>
           <button id="savePlanBtn" class="secondary-button"><span>☆</span> 儲存計劃課堂</button>
+          <button id="saveCurrentPlanBtn" class="secondary-button" hidden><span>✓</span> 儲存到當前計劃</button>
           <button id="replaceBtn" class="primary-button"><span>⇄</span> 查詢替換班別</button>
         </div>
       </header>
@@ -130,7 +131,7 @@
   <div class="modal-backdrop" id="planModalBackdrop" hidden>
     <section class="modal" role="dialog" aria-modal="true" aria-labelledby="planModalTitle">
       <div class="modal-header"><div><div class="eyebrow">Saved plan</div><h2 id="planModalTitle">儲存計劃課堂</h2></div><button class="close-button" id="closePlanModal">×</button></div>
-      <p class="modal-copy">儲存目前的替換安排，之後可以從左側載入或編輯。</p>
+      <p class="modal-copy">儲存目前的替換安排，之後可以從左側載入或查看資訊。</p>
       <label class="plan-name-label">計劃名稱<input id="planNameInput" placeholder="例如：星期五下午替換方案" autocomplete="off"></label>
       <div class="form-grid plan-form-grid">
         <label>原有課堂<select id="planOriginalSelect"></select></label>
@@ -138,7 +139,17 @@
       </div>
       <div id="planCourses" class="original-plan-courses" hidden></div>
       <div class="replacement-preview" id="planPreview"></div>
-      <div class="modal-actions"><button class="secondary-button" id="cancelPlan">取消</button><button class="primary-button" id="confirmPlan"><span>✓</span> 儲存修改</button></div>
+      <div class="modal-actions"><button class="secondary-button" id="cancelPlan">取消</button><button class="primary-button" id="confirmPlan"><span>✓</span> 儲存計劃</button></div>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="planInfoModalBackdrop" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="planInfoModalTitle">
+      <div class="modal-header"><div><div class="eyebrow">Saved plan information</div><h2 id="planInfoModalTitle">計劃資訊</h2></div><button class="close-button" id="closePlanInfoModal">×</button></div>
+      <p class="modal-copy">查看計劃內的課堂時間，並可修改計劃名稱。</p>
+      <label class="plan-name-label">計劃名稱<input id="planInfoNameInput" placeholder="例如：星期五下午替換方案" autocomplete="off"></label>
+      <div id="planInfoCourses" class="plan-info-courses"></div>
+      <div class="modal-actions"><button class="secondary-button" id="cancelPlanInfo">取消</button><button class="primary-button" id="savePlanInfo"><span>✓</span> 儲存名稱</button></div>
     </section>
   </div>
 
