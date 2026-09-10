@@ -73,6 +73,7 @@ button { cursor: pointer; }
 .saved-empty { color: #8fa8ba; font-size: 10px; line-height: 1.45; }
 .saved-plan { background: rgba(255,255,255,.08); border-left: 3px solid #d89a5f; padding: 10px 10px 9px 12px; }
 .saved-plan.original-plan { border-left-color: #9bc1d7; }
+.saved-plan.original-plan .saved-plan-name { color: #e05252; font-weight: 850; }
 .saved-plan-name { color: #f4f8fb; font-size: 14px; font-weight: 700; line-height: 1.3; overflow-wrap: anywhere; }
 .saved-plan-route { color: #b9cddd; font-size: 10px; line-height: 1.4; margin-top: 5px; }
 .saved-plan-history { color: #9db4c8; font-size: 8px; line-height: 1.35; margin-top: 4px; }
