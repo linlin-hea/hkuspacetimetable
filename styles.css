@@ -240,7 +240,7 @@ body.sidebar-collapsed .sidebar-handle-button { left: 0; border-left: 1px solid 
 @media (max-width: 900px) {
   .app-shell { display: block; }
   .sidebar { width: 250px; max-height: 100vh; padding: 20px 14px; }
-  .main-content { width: calc(100% - 250px); margin-left: 250px; max-width: none; padding: 28px 18px 40px; }
+  .main-content { width: 100%; margin-left: 0; max-width: none; padding: 28px 18px 40px; }
   .topbar { flex-direction: column; gap: 16px; }
   .topbar-actions { width: 100%; flex-wrap: wrap; padding-top: 0; }
   .workspace { overflow-x: auto; }
@@ -250,7 +250,7 @@ body.sidebar-collapsed .sidebar-handle-button { left: 0; border-left: 1px solid 
 }
 @media (max-width: 600px) {
   .sidebar { width: 235px; padding: 18px 11px; }
-  .main-content { width: calc(100% - 235px); margin-left: 235px; padding: 20px 10px 30px; }
+  .main-content { width: 100%; margin-left: 0; padding: 20px 10px 30px; }
   .topbar h1 { font-size: 23px; }
   .topbar-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
   .user-bar { grid-column: 1 / -1; justify-content: flex-start; }
