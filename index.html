@@ -146,10 +146,12 @@
   <div class="modal-backdrop" id="planInfoModalBackdrop" hidden>
     <section class="modal" role="dialog" aria-modal="true" aria-labelledby="planInfoModalTitle">
       <div class="modal-header"><div><div class="eyebrow">Saved plan information</div><h2 id="planInfoModalTitle">計劃資訊</h2></div><button class="close-button" id="closePlanInfoModal">×</button></div>
-      <p class="modal-copy">查看計劃內的課堂時間，並可修改計劃名稱。</p>
+      <p class="modal-copy">查看課堂時間、修改計劃名稱、備注及替換歷史。</p>
       <label class="plan-name-label">計劃名稱<input id="planInfoNameInput" placeholder="例如：星期五下午替換方案" autocomplete="off"></label>
       <div id="planInfoCourses" class="plan-info-courses"></div>
-      <div class="modal-actions"><button class="secondary-button" id="cancelPlanInfo">取消</button><button class="primary-button" id="savePlanInfo"><span>✓</span> 儲存名稱</button></div>
+      <label class="plan-notes-label">計劃備注<textarea id="planInfoNotes" rows="3" placeholder="輸入你想記下的內容，例如選班原因或注意事項"></textarea></label>
+      <div class="plan-history-editor"><div class="plan-history-title">替換歷史</div><div id="planInfoHistory"></div></div>
+      <div class="modal-actions"><button class="secondary-button" id="cancelPlanInfo">取消</button><button class="primary-button" id="savePlanInfo"><span>✓</span> 儲存資訊</button></div>
     </section>
   </div>
 

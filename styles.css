@@ -48,15 +48,25 @@ button { cursor: pointer; }
 .saved-plans { display: grid; gap: 8px; }
 .saved-empty { color: #8fa8ba; font-size: 10px; line-height: 1.45; }
 .saved-plan { background: rgba(255,255,255,.08); border-left: 3px solid #d89a5f; padding: 10px 10px 9px 12px; }
-.saved-plan-name { color: #f4f8fb; font-size: 11px; font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; }
+.saved-plan-name { color: #f4f8fb; font-size: 14px; font-weight: 700; line-height: 1.3; overflow-wrap: anywhere; }
 .saved-plan-route { color: #b9cddd; font-size: 10px; line-height: 1.4; margin-top: 5px; }
+.saved-plan-history { color: #9db4c8; font-size: 8px; line-height: 1.35; margin-top: 4px; }
 .saved-plan-actions { display: flex; gap: 6px; margin-top: 8px; }
 .saved-plan-actions button { background: transparent; border: 1px solid rgba(255,255,255,.22); color: #c7d7e2; padding: 4px 7px; font-size: 10px; border-radius: 2px; }
 .saved-plan-actions button:hover { background: rgba(255,255,255,.1); color: #fff; }
 .plan-info-courses { display: grid; gap: 8px; max-height: 48vh; overflow: auto; }
 .plan-info-course { display: grid; gap: 3px; border: 1px solid var(--line); background: #fbfcfd; color: var(--ink); padding: 9px 10px; }
 .plan-info-course strong { font-size: 11px; }
-.plan-info-course span, .plan-info-course small { color: var(--muted); font-size: 10px; line-height: 1.4; }
+.plan-info-course span, .plan-info-course small { color: var(--muted); font-size: 9px; line-height: 1.35; }
+.plan-notes-label { display: grid; gap: 6px; margin-top: 12px; color: var(--ink); font-size: 11px; }
+.plan-notes-label textarea { width: 100%; resize: vertical; border: 1px solid var(--line); background: #fbfcfd; color: var(--ink); padding: 8px 9px; font: inherit; font-size: 10px; line-height: 1.45; box-sizing: border-box; }
+.plan-history-editor { margin-top: 14px; }
+.plan-history-title { color: var(--ink); font-size: 11px; margin-bottom: 7px; }
+.plan-history-row { display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr) auto; align-items: center; gap: 5px; margin-bottom: 6px; }
+.plan-history-row select { min-width: 0; border: 1px solid var(--line); background: #fbfcfd; color: var(--ink); padding: 5px 6px; font-size: 9px; }
+.plan-history-row span { color: var(--muted); font-size: 9px; }
+.history-delete { border: 0; background: transparent; color: #b76060; cursor: pointer; font-size: 14px; line-height: 1; padding: 2px 4px; }
+.history-delete:hover { color: #8d2f2f; }
 .sidebar-footer { margin-top: auto; border-top: 1px solid rgba(255,255,255,.15); padding: 18px 8px 0; display: grid; gap: 9px; color: #adbfcd; font-size: 11px; }
 .legend-row { display: flex; align-items: center; gap: 8px; }
 .legend-dot { width: 8px; height: 8px; border-radius: 50%; background: #9bc1d7; }.legend-dot.alternative { background: #d89a5f; }.legend-dot.muted { background: #788e9d; }
