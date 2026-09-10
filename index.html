@@ -133,8 +133,11 @@
       <div class="modal-header"><div><div class="eyebrow">Teacher finder</div><h2 id="teacherSearchModalTitle">搜尋老師</h2></div><button class="close-button" id="closeTeacherSearchModal">×</button></div>
       <p class="modal-copy">輸入導師姓名，即可查看他／她所教授的課程、班別、時間及教室。</p>
       <label class="plan-name-label">導師姓名<input id="teacherSearchInput" placeholder="例如：Blaine" autocomplete="off"></label>
+      <div class="teacher-picker" id="teacherClassPicker"><div class="helper-text">輸入老師姓名後，可在這裡選擇其任教班別。</div></div>
       <div class="search-results teacher-search-results" id="teacherSearchResults">請輸入導師姓名。</div>
-      <div class="modal-actions"><button class="secondary-button" id="cancelTeacherSearch">關閉</button><button class="primary-button" id="runTeacherSearch"><span>⌕</span> 搜尋老師</button></div>
+      <label class="plan-notes-label teacher-bulk-label">一次輸入多位老師及班別<textarea id="teacherBulkInput" rows="5" placeholder="Blaine:\nCCEN4003 CL01, CL02, CL03\n\n另一位老師:\nCCAH3003 CL01, CL02"></textarea></label>
+      <div class="teacher-bulk-help">每位老師一行姓名加冒號，下一行輸入班別；可用逗號分隔多個 Class No。</div>
+      <div class="modal-actions"><button class="secondary-button" id="cancelTeacherSearch">關閉</button><button class="secondary-button" id="importTeacherData"><span>↥</span> 匯入老師班別</button><button class="secondary-button" id="saveTeacherClasses"><span>✓</span> 儲存所選班別</button><button class="primary-button" id="runTeacherSearch"><span>⌕</span> 搜尋老師</button></div>
     </section>
   </div>
 
