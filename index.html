@@ -33,6 +33,8 @@
         <label class="upload-button" for="csvInput"><span>↥</span> 匯入 CSV 課堂資料</label>
         <input id="csvInput" type="file" accept=".csv,text/csv" hidden>
         <div class="helper-text">欄位：Course Code, Class No, Course Name, Weekday, Time, Room</div>
+        <button id="clearTeacherDataBtn" class="secondary-button full-width"><span>⌫</span> 清理老師任教資料</button>
+        <button id="clearAcademicDataBtn" class="secondary-button full-width"><span>⌫</span> 清理舊學年課堂</button>
       </div>
 
       <div class="sidebar-section saved-section">
@@ -58,6 +60,7 @@
           <div class="user-bar"><span class="user-avatar" id="userAvatar">?</span><span id="currentUserLabel">未登入</span><button id="adminBtn" class="user-switch admin-button" hidden>管理後台</button><button id="switchUserBtn" class="user-switch">登入</button><button id="logoutBtn" class="user-switch" hidden>登出</button></div>
           <button id="searchClassBtn" class="secondary-button"><span>⌕</span> 搜尋班別</button>
           <button id="searchTeacherBtn" class="secondary-button"><span>⌕</span> 搜尋老師</button>
+          <button id="addTeacherClassesBtn" class="secondary-button"><span>＋</span> 添加老師任教班別</button>
           <button id="resetBtn" class="icon-button" title="重設預覽">↶</button>
           <button id="savePlanBtn" class="secondary-button"><span>☆</span> 儲存計劃課堂</button>
           <button id="saveCurrentPlanBtn" class="secondary-button" hidden><span>✓</span> 儲存到當前計劃</button>
@@ -133,11 +136,27 @@
       <div class="modal-header"><div><div class="eyebrow">Teacher finder</div><h2 id="teacherSearchModalTitle">搜尋老師</h2></div><button class="close-button" id="closeTeacherSearchModal">×</button></div>
       <p class="modal-copy">輸入導師姓名，即可查看他／她所教授的課程、班別、時間及教室。</p>
       <label class="plan-name-label">導師姓名<input id="teacherSearchInput" placeholder="例如：Blaine" autocomplete="off"></label>
-      <div class="teacher-picker" id="teacherClassPicker"><div class="helper-text">輸入老師姓名後，可在這裡選擇其任教班別。</div></div>
       <div class="search-results teacher-search-results" id="teacherSearchResults">請輸入導師姓名。</div>
-      <label class="plan-notes-label teacher-bulk-label">一次輸入多位老師及班別<textarea id="teacherBulkInput" rows="5" placeholder="Blaine:\nCCEN4003 CL01, CL02, CL03\n\n另一位老師:\nCCAH3003 CL01, CL02"></textarea></label>
-      <div class="teacher-bulk-help">每位老師一行姓名加冒號，下一行輸入班別；可用逗號分隔多個 Class No。</div>
-      <div class="modal-actions"><button class="secondary-button" id="cancelTeacherSearch">關閉</button><button class="secondary-button" id="importTeacherData"><span>↥</span> 匯入老師班別</button><button class="secondary-button" id="saveTeacherClasses"><span>✓</span> 儲存所選班別</button><button class="primary-button" id="runTeacherSearch"><span>⌕</span> 搜尋老師</button></div>
+      <div class="modal-actions"><button class="secondary-button" id="cancelTeacherSearch">關閉</button><button class="primary-button" id="runTeacherSearch"><span>⌕</span> 搜尋老師</button></div>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="teacherAssignmentModalBackdrop" hidden>
+    <section class="modal teacher-assignment-modal" role="dialog" aria-modal="true" aria-labelledby="teacherAssignmentModalTitle">
+      <div class="modal-header"><div><div class="eyebrow">Teacher classes</div><h2 id="teacherAssignmentModalTitle">添加老師任教班別</h2></div><button class="close-button" id="closeTeacherAssignmentModal">×</button></div>
+      <p class="modal-copy">輸入老師及 Course Code，再勾選他／她任教的 Class No。再次輸入相同資料即可修改。</p>
+      <label class="plan-name-label">導師名稱<input id="teacherAssignmentNameInput" placeholder="例如：Blaine" autocomplete="off"></label>
+      <label class="plan-name-label">Course Code<input id="teacherAssignmentCodeInput" placeholder="例如：CCEN4003" autocomplete="off"></label>
+      <div class="teacher-class-options" id="teacherAssignmentOptions"><div class="helper-text">輸入 Course Code 後選擇班別。</div></div>
+      <div class="modal-actions"><button class="secondary-button" id="cancelTeacherAssignment">取消</button><button class="primary-button" id="saveTeacherAssignment"><span>✓</span> 儲存任教班別</button></div>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="confirmActionModalBackdrop" hidden>
+    <section class="modal confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirmActionTitle">
+      <div class="modal-header"><div><div class="eyebrow">Please confirm</div><h2 id="confirmActionTitle">確認操作</h2></div><button class="close-button" id="closeConfirmAction">×</button></div>
+      <p class="modal-copy" id="confirmActionMessage"></p>
+      <div class="modal-actions"><button class="secondary-button" id="cancelConfirmAction">取消</button><button class="primary-button" id="confirmActionButton"><span>✓</span> 確認清理</button></div>
     </section>
   </div>
 

@@ -145,6 +145,9 @@ h1, h2, p { margin: 0; } h1 { color: var(--navy); font-size: 28px; line-height: 
 .teacher-picker-heading { margin-bottom: 8px; color: var(--muted); font-size: 11px; line-height: 1.5; }
 .teacher-picker-option { display: grid; grid-template-columns: auto 145px 1fr; align-items: center; gap: 8px; padding: 6px 0; border-top: 1px solid #edf1f3; color: var(--navy); font-size: 11px; }
 .teacher-picker-option small { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.teacher-assignment-modal { width: min(560px, 100%); }
+.teacher-class-options { max-height: 240px; overflow: auto; margin-top: 14px; padding: 10px; border: 1px solid var(--line); background: #fbfcfd; }
+.confirm-modal { width: min(500px, 100%); }
 .teacher-bulk-label { margin-top: 16px; }
 .teacher-bulk-help { margin-top: 5px; color: var(--muted); font-size: 10px; line-height: 1.5; }
 .admin-modal { width: min(720px, 100%); }
