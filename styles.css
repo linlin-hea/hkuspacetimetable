@@ -19,7 +19,7 @@ body { margin: 0; min-width: 1120px; background: var(--paper); }
 button, select, input { font: inherit; }
 button { cursor: pointer; }
 .app-shell { min-height: 100vh; display: flex; }
-.sidebar { width: 270px; flex: 0 0 270px; background: var(--navy); color: #f4f8fb; padding: 28px 20px 22px; display: flex; flex-direction: column; }
+.sidebar { width: 310px; flex: 0 0 310px; background: var(--navy); color: #f4f8fb; padding: 28px 20px 22px; display: flex; flex-direction: column; overflow-y: auto; }
 .brand { display: flex; gap: 12px; align-items: center; padding: 0 8px 30px; border-bottom: 1px solid rgba(255,255,255,.15); }
 .brand-mark { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid #8eafc7; color: #dceaf3; font-weight: 700; font-size: 18px; }
 .brand-title { font-size: 15px; font-weight: 700; letter-spacing: .2px; }
@@ -48,6 +48,26 @@ button { cursor: pointer; }
 .upload-button { display: block; text-align: center; padding: 10px 12px; border: 1px solid rgba(255,255,255,.25); color: #eaf3f8; font-size: 12px; border-radius: 3px; }
 .upload-button:hover { background: rgba(255,255,255,.08); }
 .helper-text { color: #8fa8ba; font-size: 10px; line-height: 1.5; padding-top: 9px; }
+.course-overview-section { padding-top: 20px; }
+.master-pdf-links { display: grid; gap: 6px; margin-bottom: 12px; }
+.master-pdf-links a { color: #eaf3f8; font-size: 10px; line-height: 1.4; text-decoration: underline; text-underline-offset: 3px; }
+.master-pdf-links a + a { color: #9db4c8; text-decoration: none; }
+.catalog-search { display: flex; align-items: center; gap: 7px; padding: 8px 9px; border-radius: 18px; background: rgba(255,255,255,.12); color: #c7d7e2; }
+.catalog-search input { width: 100%; border: 0; outline: 0; background: transparent; color: #f4f8fb; font-size: 10px; }
+.catalog-search input::placeholder { color: #9db4c8; }
+.course-catalog { display: grid; gap: 5px; margin-top: 12px; max-height: 380px; overflow: auto; padding-right: 3px; }
+.catalog-group { border-bottom: 1px solid rgba(255,255,255,.08); }
+.catalog-course-button { display: grid; grid-template-columns: 16px 1fr auto; align-items: center; gap: 4px; width: 100%; padding: 8px 3px; border: 0; border-left: 3px solid var(--course-color); background: transparent; color: #f4f8fb; text-align: left; }
+.catalog-course-button:hover, .catalog-group.is-open .catalog-course-button { background: rgba(255,255,255,.08); }
+.catalog-course-button strong { color: var(--course-color); font-size: 12px; }
+.catalog-course-button small { color: #9db4c8; font-size: 9px; }
+.catalog-chevron { color: #d8e7ef; font-size: 17px; line-height: 1; }
+.catalog-class-list { display: grid; gap: 4px; padding: 3px 0 7px 18px; }
+.catalog-class { display: flex; align-items: center; justify-content: space-between; gap: 5px; padding: 7px 6px; background: rgba(255,255,255,.06); border-left: 2px solid var(--course-color); }
+.catalog-class strong { color: #f4f8fb; font-size: 10px; }
+.catalog-class span { display: block; max-width: 165px; margin-top: 3px; color: #b9cddd; font-size: 8px; line-height: 1.4; }
+.catalog-add-button { flex: 0 0 auto; padding: 4px 6px; border: 1px solid rgba(255,255,255,.25); border-radius: 2px; background: transparent; color: #eaf3f8; font-size: 9px; }
+.catalog-add-button:hover, .catalog-add-button.added { background: #eaf3f8; color: var(--navy); }
 .saved-section { padding-top: 22px; }
 .saved-plans { display: grid; gap: 8px; }
 .saved-empty { color: #8fa8ba; font-size: 10px; line-height: 1.45; }
