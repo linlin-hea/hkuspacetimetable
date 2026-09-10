@@ -118,7 +118,7 @@ function renderTimetable() {
   sessions.forEach(item => {
     const body = grid.querySelector(`[data-day="${item.day}"]`); if (!body) return;
     const {start, end} = parseTime(item.time); const top = ((start - TIME_START) / 90) * SLOT_HEIGHT; const height = Math.max(71, ((end-start)/90) * SLOT_HEIGHT - 4);
-    const color = item.isAlternative ? 'alternative' : (item.code.endsWith('05') ? 'teal' : item.code.endsWith('12') ? 'orange' : '');
+    const color = item.isAlternative ? 'alternative' : '';
     const displayHeight = Math.max(107, height);
     body.insertAdjacentHTML('beforeend', `<div class="session ${color}" style="top:${top}px;height:${displayHeight}px"><div class="session-code">${escapeHtml(item.code)} · ${escapeHtml(item.no)}${item.isAlternative ? ' · 替換' : ''}</div><div class="session-name">${escapeHtml(item.name)}</div>${courseMetaLabel(courseKey(item)) ? `<div class="session-instructor">${escapeHtml(courseMetaLabel(courseKey(item)))}</div>` : ''}<div class="session-time">${escapeHtml(item.time)}<br><span class="session-room">${escapeHtml(item.room)}</span></div></div>`);
   });
