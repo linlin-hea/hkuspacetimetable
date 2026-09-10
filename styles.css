@@ -210,3 +210,45 @@ h1, h2, p { margin: 0; } h1 { color: var(--navy); font-size: 28px; line-height: 
   .search-time-options { grid-template-columns: 1fr; }
   .teacher-picker-option { grid-template-columns: auto 80px 1fr; }
 }
+
+/* Collapsible left navigation and responsive layout */
+.sidebar { position: fixed; inset: 0 auto 0 0; z-index: 20; height: 100vh; transition: transform .22s ease; }
+.main-content { width: calc(100% - 310px); max-width: none; margin-left: 310px; min-width: 0; transition: margin-left .22s ease, width .22s ease; }
+body.sidebar-collapsed .sidebar { transform: translateX(-100%); }
+body.sidebar-collapsed .main-content { width: 100%; margin-left: 0; }
+.sidebar-toggle-button { display: inline-flex; align-items: center; gap: 5px; }
+.notice-button { border: 1px solid #d6a932; color: #8a6500; }
+.notice-modal { width: min(680px, 100%); }
+.notice-content { color: var(--ink); font-size: 12px; line-height: 1.75; }
+.notice-content h3 { margin: 0 0 12px; color: #9b6d00; font-size: 14px; }
+.notice-content ul { margin: 0 0 13px; padding-left: 22px; }
+.notice-content p { margin: 12px 0; }
+.notice-content a { color: var(--blue); }
+.notice-warning { padding: 12px 14px; border-left: 4px solid #e1b43b; background: #fff8df; }
+
+@media (max-width: 1180px) {
+  .sidebar { width: 270px; flex-basis: 270px; }
+  .main-content { width: calc(100% - 270px); margin-left: 270px; }
+  body.sidebar-collapsed .main-content { width: 100%; margin-left: 0; }
+}
+@media (max-width: 900px) {
+  .app-shell { display: block; }
+  .sidebar { width: 250px; max-height: 100vh; padding: 20px 14px; }
+  .main-content { width: calc(100% - 250px); margin-left: 250px; max-width: none; padding: 28px 18px 40px; }
+  .topbar { flex-direction: column; gap: 16px; }
+  .topbar-actions { width: 100%; flex-wrap: wrap; padding-top: 0; }
+  .workspace { overflow-x: auto; }
+  .timetable { min-width: 880px; }
+  body.sidebar-collapsed .main-content { width: 100%; margin-left: 0; }
+}
+@media (max-width: 600px) {
+  .sidebar { width: 235px; padding: 18px 11px; }
+  .main-content { width: calc(100% - 235px); margin-left: 235px; padding: 20px 10px 30px; }
+  .topbar h1 { font-size: 23px; }
+  .topbar-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+  .user-bar { grid-column: 1 / -1; justify-content: flex-start; }
+  .topbar-actions .secondary-button, .topbar-actions .primary-button { width: 100%; padding: 8px 5px; font-size: 10px; }
+  .stats-row { grid-template-columns: 1fr 1fr; gap: 7px; }
+  .workspace-header { min-height: 60px; padding: 10px 12px; }
+  body.sidebar-collapsed .main-content { width: 100%; margin-left: 0; }
+}

@@ -65,9 +65,12 @@
         </div>
         <div class="topbar-actions">
           <div class="user-bar"><span class="user-avatar" id="userAvatar">?</span><span id="currentUserLabel">未登入</span><button id="adminBtn" class="user-switch admin-button" hidden>管理後台</button><button id="switchUserBtn" class="user-switch">登入</button><button id="logoutBtn" class="user-switch" hidden>登出</button></div>
+          <button id="sidebarToggleBtn" class="secondary-button sidebar-toggle-button"><span>☰</span> 側欄</button>
           <button id="searchClassBtn" class="secondary-button"><span>⌕</span> 搜尋班別</button>
           <button id="searchTeacherBtn" class="secondary-button"><span>⌕</span> 搜尋老師</button>
           <button id="addTeacherClassesBtn" class="secondary-button"><span>＋</span> 添加老師任教班別</button>
+          <button id="rulesBtn" class="secondary-button notice-button"><span>⚠</span> 學期規則</button>
+          <button id="disclaimerBtn" class="secondary-button notice-button"><span>i</span> 免責聲明</button>
           <button id="resetBtn" class="icon-button" title="重設預覽">↶</button>
           <button id="savePlanBtn" class="secondary-button"><span>☆</span> 儲存計劃課堂</button>
           <button id="saveCurrentPlanBtn" class="secondary-button" hidden><span>✓</span> 儲存到當前計劃</button>
@@ -164,6 +167,13 @@
       <div class="modal-header"><div><div class="eyebrow">Please confirm</div><h2 id="confirmActionTitle">確認操作</h2></div><button class="close-button" id="closeConfirmAction">×</button></div>
       <p class="modal-copy" id="confirmActionMessage"></p>
       <div class="modal-actions"><button class="secondary-button" id="cancelConfirmAction">取消</button><button class="primary-button" id="confirmActionButton"><span>✓</span> 確認清理</button></div>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="noticeModalBackdrop" hidden>
+    <section class="modal notice-modal" role="dialog" aria-modal="true" aria-labelledby="noticeModalTitle">
+      <div class="modal-header"><div><div class="eyebrow">Important information</div><h2 id="noticeModalTitle">重要資訊</h2></div><button class="close-button" id="closeNoticeModal">×</button></div>
+      <div id="noticeModalContent" class="notice-content"></div>
     </section>
   </div>
 
