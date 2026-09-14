@@ -65,6 +65,10 @@ button:focus-visible { outline: 0.2rem solid #f3bd45; outline-offset: 0.15rem; }
 .daily-lessons li { padding: 0.75rem; border-radius: 0.55rem; background: #eef6fa; color: #294e68; font-size: 0.92rem; line-height: 1.5; }
 .daily-lessons li p { margin: 0.3rem 0 0; }
 .daily-lessons li p span { display: inline-block; min-width: 3.4rem; color: #506f84; font-weight: 800; }
+.daily-lessons--comparison { border-top-color: #d7c4e7; }
+.daily-lessons--comparison h3 { color: #5c347c; }
+.daily-lessons--comparison li { background: #f5effa; color: #593875; }
+.daily-lessons--comparison li p span { color: #795798; }
 
 .guide { margin-top: 1.4rem; padding: 1.15rem 1.4rem; box-shadow: none; }
 .guide h2 { margin-bottom: 0.6rem; font-size: 1rem; }

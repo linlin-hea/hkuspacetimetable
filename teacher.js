@@ -110,8 +110,8 @@ function dailyLessons(teacher, day, schedule) {
     }).join("");
 }
 
-function referenceBlock(teacher, day, schedule) {
-  return `<div class="daily-lessons"><h3>${escapeHtml(teacher)} 在${DAYS[day]}的授課節次</h3><ul>${dailyLessons(teacher, day, schedule) || "<li>當天沒有已排定課堂。</li>"}</ul></div>`;
+function referenceBlock(teacher, day, schedule, variant = "daily") {
+  return `<div class="daily-lessons daily-lessons--${variant}"><h3>${escapeHtml(teacher)} 在${DAYS[day]}的授課節次</h3><ul>${dailyLessons(teacher, day, schedule) || "<li>當天沒有已排定課堂。</li>"}</ul></div>`;
 }
 
 function search(event) {
@@ -122,9 +122,24 @@ function search(event) {
   const day = String(values.get("day"));
   const season = String(values.get("season"));
   const schedule = teacherData.schedules[season];
-  const parsed = parsePeriod(String(values.get("timeOrPeriod")), schedule);
+  const timeOrPeriod = String(values.get("timeOrPeriod")).trim();
 
-  if (!teacherData.teachers.includes(teacher) || !DAYS[day] || !parsed || parsed.outside) {
+  if (!teacherData.teachers.includes(teacher) || !DAYS[day]) {
+    errorResult();
+    return;
+  }
+  if (!timeOrPeriod) {
+    showResult(`
+      <p class="result-label">${schedule.label} · ${escapeHtml(teacher)} · ${DAYS[day]}</p>
+      <h2 class="result-title">${escapeHtml(teacher)} 當天的授課節次</h2>
+      <p class="result-note">未輸入時間或節次，以下列出當天所有已排定課堂。</p>
+      ${referenceBlock(teacher, day, schedule)}
+    `);
+    return;
+  }
+
+  const parsed = parsePeriod(timeOrPeriod, schedule);
+  if (!parsed || parsed.outside) {
     errorResult();
     return;
   }
@@ -133,7 +148,7 @@ function search(event) {
       <p class="result-label">${schedule.label} · ${escapeHtml(teacher)} · ${DAYS[day]} · ${parsed.time}</p>
       <h2 class="result-title">目前是 ${pauseName(parsed.pause)}</h2>
       <p class="result-note">${parsed.pause.start}–${parsed.pause.end}，目前沒有課堂。</p>
-      ${referenceBlock(teacher, day, schedule)}
+      ${referenceBlock(teacher, day, schedule, "comparison")}
     `, "break");
     return;
   }
@@ -142,7 +157,7 @@ function search(event) {
       <p class="result-label">${schedule.label} · ${escapeHtml(teacher)} · ${DAYS[day]} · ${parsed.time}</p>
       <h2 class="result-title">目前沒有課堂安排</h2>
       <p class="result-note">此時間位於課節與休息時段之間。</p>
-      ${referenceBlock(teacher, day, schedule)}
+      ${referenceBlock(teacher, day, schedule, "comparison")}
     `, "break");
     return;
   }
@@ -158,7 +173,7 @@ function search(event) {
       <p class="result-label">${schedule.label} · ${escapeHtml(teacher)} · ${DAYS[day]}</p>
       <h2 class="result-title">${escapeHtml(teacher)} 目前是空堂</h2>
       <p class="result-note">第 ${parsed.period} 節 · ${periodTime.start}–${periodTime.end}</p>
-      ${referenceBlock(teacher, day, schedule)}
+      ${referenceBlock(teacher, day, schedule, "comparison")}
     `, "break");
     return;
   }
@@ -171,6 +186,7 @@ function search(event) {
       <div class="detail"><span>課室</span><strong>${escapeHtml(displayRooms(entry.rooms))}</strong></div>
     </div>
     <p class="result-note">合作教師：${escapeHtml(entry.teachers)} · PDF 來源：第 ${entry.source_page} 頁 · 原格跨第 ${entry.period_span[0]}–${entry.period_span[1]} 節</p>
+    ${referenceBlock(teacher, day, schedule, "comparison")}
   `);
 }
 

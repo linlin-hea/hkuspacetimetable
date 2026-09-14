@@ -27,7 +27,7 @@
       <section class="search-card" aria-labelledby="search-heading">
         <div class="card-heading">
           <h2 id="search-heading">查詢教師</h2>
-          <p>輸入教師代碼、星期與時間或節次。</p>
+          <p>輸入教師代碼及星期；時間或節次可留空。</p>
         </div>
 
         <form id="teacher-query-form" novalidate>
@@ -55,8 +55,8 @@
                 </select>
               </label>
             </div>
-            <label for="teacher-time-input">時間或節次
-              <input id="teacher-time-input" name="timeOrPeriod" autocomplete="off" placeholder="830、8:30、1、第一節" required />
+            <label for="teacher-time-input">時間或節次（可留空）
+              <input id="teacher-time-input" name="timeOrPeriod" autocomplete="off" placeholder="830、8:30、1、第一節" />
             </label>
             <button type="submit">搜尋教師課堂</button>
           </div>
@@ -70,7 +70,7 @@
         <h2 id="guide-heading">輸入提示</h2>
         <ul>
           <li>教師代碼不分大小寫；輸入開頭字母可選擇建議，例如 <code>t</code> 會列出 <code>THK</code>。</li>
-          <li>時間可輸入 <code>830</code> 或 <code>8:30</code>；節次可輸入 <code>1</code>、<code>一</code> 或 <code>第一節</code>。</li>
+          <li>只輸入教師代碼及星期，可查看該教師當天的全部授課節次。時間可輸入 <code>830</code> 或 <code>8:30</code>；節次可輸入 <code>1</code>、<code>一</code> 或 <code>第一節</code>。</li>
           <li>小息及午膳會顯示目前狀態與該教師當日授課節次；有效課節內沒有課則顯示空堂。</li>
           <li>不存在的教師、無效時間／節次，或超出冬令 <code>08:30–16:05</code>、夏令 <code>08:30–13:40</code> 的時間，會顯示「輸入錯誤資料無法搜索」。</li>
         </ul>
