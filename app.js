@@ -1,279 +1,135 @@
-const DAYS = ['一', '二', '三', '四', '五', '六'];
-const DAY_NAMES = {1:'週一',2:'週二',3:'週三',4:'週四',5:'週五',6:'週六'};
-const NON_MIXABLE_CLASS_TYPES = new Set(['AL', 'BL', 'CL']);
-const TIME_START = 8 * 60 + 30;
-const SLOT_HEIGHT = 108;
+const DAYS = { Mon: "星期一", Tue: "星期二", Wed: "星期三", Thu: "星期四", Fri: "星期五" };
+const CHINESE_PERIODS = { "一": 1, "二": 2, "三": 3, "四": 4, "五": 5, "六": 6, "七": 7, "八": 8, "九": 9 };
 
-let dataset = [
-  {code:'CCAH3003', no:'CL01', name:'The Process of Design', day:5, time:'14:30 - 15:50', room:'KEC201'},
-  {code:'CCAH3003', no:'CL01', name:'The Process of Design', day:5, time:'16:00 - 17:20', room:'KEC201'},
-  {code:'CCAH3003', no:'CL02', name:'The Process of Design', day:5, time:'10:00 - 11:20', room:'KEC201'},
-  {code:'CCAH3003', no:'CL02', name:'The Process of Design', day:5, time:'11:30 - 12:50', room:'KEC201'},
-  {code:'CCAH3003', no:'CL03', name:'The Process of Design', day:3, time:'08:30 - 09:50', room:'KEC201'},
-  {code:'CCAH3003', no:'CL03', name:'The Process of Design', day:3, time:'10:00 - 11:20', room:'KEC201'},
-  {code:'CCAH3003', no:'CL04', name:'The Process of Design', day:2, time:'08:30 - 09:50', room:'KEC201'},
-  {code:'CCAH3003', no:'CL04', name:'The Process of Design', day:2, time:'10:00 - 11:20', room:'KEC201'},
-  {code:'CCAH3003', no:'CL05', name:'The Process of Design', day:4, time:'10:00 - 11:20', room:'ADC302'},
-  {code:'CCAH3003', no:'CL05', name:'The Process of Design', day:4, time:'11:30 - 12:50', room:'ADC302'},
-  {code:'CCAH4005', no:'CL01', name:'Aesthetics: Art, Beauty, and Contemporary Life', day:6, time:'08:30 - 09:50', room:'KEK603'},
-  {code:'CCAH4005', no:'CL01', name:'Aesthetics: Art, Beauty, and Contemporary Life', day:6, time:'10:00 - 11:20', room:'KEK603'},
-  {code:'CCAH4005', no:'CL02', name:'Aesthetics: Art, Beauty, and Contemporary Life', day:1, time:'13:00 - 14:20', room:'KEK702'},
-  {code:'CCAH4005', no:'CL02', name:'Aesthetics: Art, Beauty, and Contemporary Life', day:1, time:'14:30 - 15:50', room:'KEK702'},
-  {code:'CCAH4012', no:'CL01', name:'Arts and Life - A Journey of Appreciation and Creation', day:6, time:'08:30 - 09:50', room:'KEC1002'},
-  {code:'CCAH4012', no:'CL01', name:'Arts and Life - A Journey of Appreciation and Creation', day:6, time:'10:00 - 11:20', room:'KEC1002'}
-];
-let selected = [];
-let alternativeKey = null;
-let alternativeKeys = [];
-let alternativeOriginalKey = null;
-let currentUser = '';
-try { currentUser = localStorage.getItem('spacePlannerCurrentUser') || ''; } catch { currentUser = ''; }
-let savedPlans = [];
-let originalSelected = [];
-let replacementHistory = [];
-let replacementKeys = [];
-let courseMeta = {};
-let courseInfoKey = '';
-let editingOriginalPlanId = null;
-let originalPlanDirty = false;
-let originalPlanSaveInProgress = false;
-let originalPlanSnapshot = '';
-let activePlanSnapshot = '';
-let editingPlanId = null;
-let activePlanId = null;
-let infoPlanId = null;
-let planDirty = false;
-let dataReady = false;
-let remoteHydrated = false;
-let authMode = 'login';
-let isAdmin = false;
-let pendingCourseKeys = [];
-let confirmAction = '';
-let catalogExpandedCode = '';
+const form = document.querySelector("#query-form");
+const submitButton = form.querySelector('button[type="submit"]');
+const status = document.querySelector("#data-status");
+const result = document.querySelector("#result");
+const todayReminder = document.querySelector("#today-reminder");
+let timetable;
 
-const $ = (id) => document.getElementById(id);
-const uniqueClasses = () => [...new Map(dataset.map(item => [`${item.code}|${item.no}`, item])).values()];
-const parseTime = (time) => { const [a,b] = time.split('-').map(v => v.trim()); const toMin = s => { const [h,m] = s.split(':').map(Number); return h*60+m; }; return {start:toMin(a), end:toMin(b)}; };
-const campusOf = room => room.slice(0, 3).toUpperCase();
-const classTypeOf = classNo => (classNo.match(/^[A-Z]+/) || [''])[0];
-function normalizeDataset(items) { return (Array.isArray(items) ? items : []).filter(item => item && typeof item.code === 'string' && typeof item.no === 'string' && typeof item.name === 'string' && Number.isInteger(Number(item.day)) && Number(item.day) >= 1 && Number(item.day) <= 6 && typeof item.time === 'string' && /^\d{2}:\d{2} - \d{2}:\d{2}$/.test(item.time) && typeof item.room === 'string' && item.room.trim()).map(item => ({ code: item.code.trim().toUpperCase(), no: item.no.trim().toUpperCase(), name: item.name.trim(), day: Number(item.day), time: item.time.trim(), room: item.room.trim() })); }
-function validPlans(value) { return Array.isArray(value) ? value.filter(plan => plan && typeof plan.id === 'string' && typeof plan.name === 'string' && Array.isArray(plan.selected) && typeof plan.originalKey === 'string' && typeof plan.replacementKey === 'string') : []; }
-function userStorageKey(name) { return `spacePlannerUser:${encodeURIComponent(name.trim().toLowerCase())}`; }
-function validReplacementHistory(value) { return Array.isArray(value) ? value.filter(item => item && typeof item.from === 'string' && typeof item.to === 'string').slice(-100) : []; }
-function normalizeTeacherClass(value) { const parts=String(value || '').trim().toUpperCase().replace(/\|/g, ' ').split(/\s+/).filter(Boolean); return parts.length >= 2 ? `${parts[0]}|${parts[1]}` : ''; }
-function parseTeacherClasses(value) { return [...new Set(String(value || '').split(/[\n,，、;；]+/).map(normalizeTeacherClass).filter(Boolean))].slice(0, 100); }
-function teacherClassLabel(key) { return displayClass(key).replace('|', ' '); }
-function validCourseMeta(value) { if (!value || typeof value !== 'object' || Array.isArray(value)) return {}; return Object.fromEntries(Object.entries(value).filter(([, item]) => item && typeof item === 'object').map(([key, item]) => [key, {instructor:typeof item.instructor === 'string' ? item.instructor.slice(0, 120) : '', note:typeof item.note === 'string' ? item.note.slice(0, 2000) : '', teaches:Array.isArray(item.teaches) ? [...new Set(item.teaches.map(normalizeTeacherClass).filter(Boolean))].slice(0, 100) : []}])); }
-function loadUserState(name, migrateLegacy = false) { try { const stored = localStorage.getItem(userStorageKey(name)); if (!stored && migrateLegacy && !localStorage.getItem('spacePlannerLegacyMigrated')) { const legacyPlans = validPlans(JSON.parse(localStorage.getItem('spacePlannerPlans') || '[]')); localStorage.setItem('spacePlannerLegacyMigrated', '1'); if (legacyPlans.length) return {selected: [], savedPlans: legacyPlans, originalSelected: [], replacementHistory: [], replacementKeys: [], courseMeta: {}}; } const value = JSON.parse(stored || '{}'); return {selected: Array.isArray(value.selected) ? value.selected.filter(key => typeof key === 'string') : [], savedPlans: validPlans(value.savedPlans), originalSelected: Array.isArray(value.originalSelected) ? value.originalSelected.filter(key => typeof key === 'string') : [], replacementHistory: validReplacementHistory(value.replacementHistory), replacementKeys: Array.isArray(value.replacementKeys) ? value.replacementKeys.filter(key => typeof key === 'string') : [], courseMeta: validCourseMeta(value.courseMeta)}; } catch { return {selected: [], savedPlans: [], originalSelected: [], replacementHistory: [], replacementKeys: [], courseMeta: {}}; } }
-function syncUserState() { if (!currentUser || !remoteHydrated) return; fetch('/api/profile', {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({selected, savedPlans, originalSelected, replacementHistory, replacementKeys, courseMeta})}).then(response => { if (response.status === 401) throw new Error('session expired'); if (!response.ok) throw new Error('sync failed'); }).catch(() => toast('伺服器同步失敗，已保留本機資料。', true)); }
-function persistUserState() { if (!currentUser) return true; try { localStorage.setItem(userStorageKey(currentUser), JSON.stringify({selected, savedPlans, originalSelected, replacementHistory, replacementKeys, courseMeta})); localStorage.setItem('spacePlannerCurrentUser', currentUser); syncUserState(); return true; } catch { toast('個人資料未能儲存，請檢查瀏覽器儲存空間。', true); return false; } }
-async function fetchUserState(name) { try { const response=await fetch('/api/profile'); if (response.status === 401) return null; if (!response.ok) throw new Error('profile unavailable'); const value=await response.json(); courseMeta=validCourseMeta(value.courseMeta); return {selected:Array.isArray(value.selected) ? value.selected.filter(key => typeof key === 'string') : [], savedPlans:validPlans(value.savedPlans), originalSelected:Array.isArray(value.originalSelected) ? value.originalSelected.filter(key => typeof key === 'string') : [], replacementHistory:validReplacementHistory(value.replacementHistory), replacementKeys:Array.isArray(value.replacementKeys) ? value.replacementKeys.filter(key => typeof key === 'string') : [], courseMeta, isAdmin:Boolean(value.isAdmin)}; } catch { const state=loadUserState(name); courseMeta=state.courseMeta; return state; } }
-function persistSavedPlans() { return persistUserState(); }
-function escapeHtml(value) { return String(value).replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch])); }
-
-function courseKey(item) { return `${item.code}|${item.no}`; }
-function classSessions(key) { return dataset.filter(item => courseKey(item) === key); }
-function displayClass(key) { const item = uniqueClasses().find(x => courseKey(x) === key); return item ? `${item.code} ${item.no}` : key; }
-function courseMetaLabel(key) { const meta=courseMeta[key]; return meta?.instructor ? `導師：${meta.instructor}` : ''; }
-const COURSE_COLORS = {CCEN:'#d95c5c', CCCH:'#4d86d8', CCBS:'#4aa56b', CCIT:'#9566c9', CCAH:'#d38a42', CCCU:'#4aa58c', CCOM:'#c86f9b', CCST:'#56a9bd', CCSS:'#c7a13b', CCFN:'#b18455', CCLW:'#7d78c5', CCMA:'#7184c4', CCMK:'#b46b9b', CCJK:'#8a7c62', CCPA:'#5c9d8c', CCSA:'#6f91b8', HPTH:'#a56d56'};
-const COURSE_COLOR_PALETTE = ['#d95c5c','#4d86d8','#4aa56b','#9566c9','#d38a42','#4aa58c','#c86f9b','#7184c4','#b18455','#56a9bd'];
-function courseColor(code) { const prefix=String(code || '').slice(0,4).toUpperCase(); if (COURSE_COLORS[prefix]) return COURSE_COLORS[prefix]; const sum=[...prefix].reduce((total,ch)=>total+ch.charCodeAt(0),0); return COURSE_COLOR_PALETTE[sum % COURSE_COLOR_PALETTE.length]; }
-function renderCourseCatalog() { const el=$('courseCatalog'); if (!el) return; const query=($('courseCatalogSearch')?.value || '').trim().toLowerCase(); const groups=[...new Map(uniqueClasses().map(item=>[item.code,{code:item.code,name:item.name,classes:[]}])).values()]; groups.forEach(group=>{ group.classes=uniqueClasses().filter(item=>item.code===group.code).sort((a,b)=>a.no.localeCompare(b.no)); }); const visible=groups.filter(group=>!query || group.code.toLowerCase().includes(query) || group.name.toLowerCase().includes(query)); el.innerHTML=visible.length ? visible.map(group=>{ const open=catalogExpandedCode===group.code; const color=courseColor(group.code); return `<div class="catalog-group${open?' is-open':''}"><button class="catalog-course-button" data-catalog-course="${escapeHtml(group.code)}" style="--course-color:${color}"><span class="catalog-chevron">${open?'⌄':'›'}</span><strong>${escapeHtml(group.code)}</strong><small>${group.classes.length} 個班別</small></button>${open?`<div class="catalog-class-list">${group.classes.map(item=>{ const key=courseKey(item); const sessions=classSessions(key).sort((a,b)=>a.day-b.day||parseTime(a.time).start-parseTime(b.time).start); const added=selected.includes(key); return `<div class="catalog-class"><div><strong>${escapeHtml(item.no)}</strong><span>${escapeHtml(sessions.map(session=>`${DAY_NAMES[session.day]} ${session.time} · ${session.room}`).join('；'))}</span></div><button class="catalog-add-button${added?' added':''}" data-catalog-add="${escapeHtml(key)}">${added?'已加入原有課堂':'加入原有課堂'}</button></div>`; }).join('')}</div>`:''}</div>`; }).join('') : '<div class="helper-text">找不到符合的課程。</div>'; el.querySelectorAll('[data-catalog-course]').forEach(button=>button.addEventListener('click',()=>{ catalogExpandedCode=catalogExpandedCode===button.dataset.catalogCourse?'':button.dataset.catalogCourse; renderCourseCatalog(); })); el.querySelectorAll('[data-catalog-add]').forEach(button=>button.addEventListener('click',()=>addCatalogClass(button.dataset.catalogAdd))); }
-function addCatalogClass(key) { if (selected.includes(key)) { toast('這個班別已經加入原有課堂。'); return; } const error=validateAddKey(key); if (error) { toast(error, true); return; } selected=[...selected,key]; renderAll(); renderCourseCatalog(); toast(`已加入原有課堂：${displayClass(key)}。`); }
-function campusesCompatible(from, to) { return from === to; }
-function openCourseInfo(key) { const item=uniqueClasses().find(x=>courseKey(x)===key); if (!item) return; courseInfoKey=key; const meta=courseMeta[key] || {}; $('courseInfoModalTitle').textContent=displayClass(key); $('courseInstructorInput').value=meta.instructor || ''; $('courseTeacherClassesInput').value=(meta.teaches || []).map(teacherClassLabel).join('\n'); $('courseTeacherNoteInput').value=meta.note || ''; const sessions=classSessions(key); $('courseInfoSessions').innerHTML=sessions.map(session=>`<div class="plan-info-course"><strong>${escapeHtml(displayClass(key))}</strong><span>${escapeHtml(session.name)}</span><small>${escapeHtml(DAY_NAMES[session.day])} · ${escapeHtml(session.time)} · ${escapeHtml(session.room)}</small></div>`).join(''); $('courseInfoModalBackdrop').hidden=false; $('courseInstructorInput').focus(); }
-function closeCourseInfo() { $('courseInfoModalBackdrop').hidden=true; courseInfoKey=''; }
-function saveCourseInfo() { const key=courseInfoKey; if (!key) return; const instructor=$('courseInstructorInput').value.trim(); const note=$('courseTeacherNoteInput').value.trim(); const teaches=parseTeacherClasses($('courseTeacherClassesInput').value); if (instructor || note || teaches.length) courseMeta[key]={instructor,note,teaches}; else delete courseMeta[key]; if (instructor) teaches.forEach(relatedKey => { const related=courseMeta[relatedKey] || {}; courseMeta[relatedKey]={...related,instructor}; }); persistUserState(); closeCourseInfo(); renderAll(); toast(`已更新${displayClass(key)}的課堂資訊。`); }
-
-function renderSavedPlans() {
-  const el = $('savedPlans');
-  savedPlans = [...savedPlans].sort((a, b) => (a.type === 'original' ? -1 : 0) - (b.type === 'original' ? -1 : 0));
-  if (!savedPlans.length) { el.innerHTML = '<div class="saved-empty">完成一次替換查詢後，可在這裡儲存計劃。</div>'; return; }
-  el.innerHTML = savedPlans.map(plan => `<div class="saved-plan"><div class="saved-plan-name">${escapeHtml(plan.name)}</div><div class="saved-plan-route">${plan.type === 'original' ? '原有時間表 · ' + plan.selected.length + ' 門課堂' : (plan.originalKey && plan.replacementKey ? `${escapeHtml(displayClass(plan.originalKey))} → ${escapeHtml(displayClass(plan.replacementKey))}` : '沒有替換歷史 · ' + plan.selected.length + ' 門課堂')}</div>${plan.replacementHistory?.length ? `<div class="saved-plan-history">${plan.replacementHistory.map((item, index) => `${index + 1}. ${escapeHtml(displayClass(item.from))} → ${escapeHtml(displayClass(item.to))}`).join('<br>')}</div>` : ''}<div class="saved-plan-actions"><button data-plan-load="${escapeHtml(plan.id)}">編輯</button><button data-plan-info="${escapeHtml(plan.id)}">資訊</button><button data-plan-delete="${escapeHtml(plan.id)}">刪除</button></div></div>`).join('');
-  savedPlans.forEach((plan,index) => { if (plan.type === 'original') el.children[index]?.classList.add('original-plan'); });
-  el.querySelectorAll('[data-plan-load]').forEach(button => button.addEventListener('click', () => loadPlan(button.dataset.planLoad)));
-  el.querySelectorAll('[data-plan-info]').forEach(button => button.addEventListener('click', () => openPlanInfo(button.dataset.planInfo)));
-  el.querySelectorAll('[data-plan-delete]').forEach(button => button.addEventListener('click', () => deletePlan(button.dataset.planDelete)));
-  updateActivePlanControl();
-}
-function renderSidebar() {
-  const el = $('selectedCourses');
-  el.innerHTML = selected.length ? selected.map(key => `<div class="course-chip"><div><strong>${escapeHtml(displayClass(key))}</strong><span>${escapeHtml(classSessions(key)[0]?.name || '')}</span>${courseMetaLabel(key) ? `<small class="course-instructor">${escapeHtml(courseMetaLabel(key))}</small>` : ''}</div><div class="course-chip-actions"><button class="course-info-button" data-course-info="${escapeHtml(key)}" title="課堂資訊">i</button><button class="remove-course" data-remove="${escapeHtml(key)}" title="移除">×</button></div></div>`).join('') : '<div class="helper-text">尚未加入原有課堂</div>';
-  el.querySelectorAll('[data-course-info]').forEach(btn => btn.addEventListener('click', () => openCourseInfo(btn.dataset.courseInfo)));
-  el.querySelectorAll('[data-remove]').forEach(btn => btn.addEventListener('click', () => { const removed=btn.dataset.remove; selected = selected.filter(key => key !== removed); replacementKeys = replacementKeys.filter(key => key !== removed); replacementHistory=replacementHistory.filter(item => item.from !== removed && item.to !== removed); alternativeOriginalKey = null; alternativeKey = null; alternativeKeys = []; renderAll(); }));
-  $('saveOriginalBtn').hidden = !currentUser || !selected.length;
-  const history = $('replacementHistory'); history.innerHTML = replacementHistory.length ? `<div class="history-label">調換次序</div>${replacementHistory.map((item, index) => `<div class="history-item"><span>${index + 1}.</span> ${escapeHtml(displayClass(item.from))} → ${escapeHtml(displayClass(item.to))}</div>`).join('')}` : '';
-  renderSavedPlans();
-  renderCourseCatalog();
-}
-
-function renderTimetable() {
-  const grid = $('timetable');
-  const header = `<div class="time-column"><div class="day-header">時間</div>${['08:30','10:00','11:30','13:00','14:30','16:00','17:30'].map(t => `<div class="time-label">${t}</div>`).join('')}</div>`;
-  const columns = DAYS.map((day, index) => `<div class="day-column"><div class="day-header ${index === 0 ? 'active':''}">週${day}</div><div class="day-body" data-day="${index+1}"></div></div>`).join('');
-  grid.innerHTML = header + columns;
-  const visibleSelected = alternativeKeys.length && alternativeOriginalKey ? selected.filter(key => key !== alternativeOriginalKey) : selected;
-  const sessions = visibleSelected.flatMap(key => classSessions(key).map(item => ({...item, isAlternative: replacementKeys.includes(key)})));
-  if (alternativeKeys.length) sessions.push(...alternativeKeys.flatMap(key => classSessions(key).map(item => ({...item, isAlternative: true}))));
-  sessions.forEach(item => {
-    const body = grid.querySelector(`[data-day="${item.day}"]`); if (!body) return;
-    const {start, end} = parseTime(item.time); const top = ((start - TIME_START) / 90) * SLOT_HEIGHT; const height = Math.max(71, ((end-start)/90) * SLOT_HEIGHT - 4);
-    const color = item.isAlternative ? 'alternative' : '';
-    const displayHeight = Math.max(107, height);
-    body.insertAdjacentHTML('beforeend', `<div class="session ${color}" style="top:${top}px;height:${displayHeight}px"><div class="session-code">${escapeHtml(item.code)} · ${escapeHtml(item.no)}${item.isAlternative ? ' · 替換' : ''}</div><div class="session-name">${escapeHtml(item.name)}</div>${courseMetaLabel(courseKey(item)) ? `<div class="session-instructor">${escapeHtml(courseMetaLabel(courseKey(item)))}</div>` : ''}<div class="session-time">${escapeHtml(item.time)}<br><span class="session-room">${escapeHtml(item.room)}</span></div></div>`);
+function setTodayReminder() {
+  const today = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][new Date().getDay()];
+  if (!DAYS[today]) {
+    const label = today === "Sat" ? "星期六" : "星期日";
+    todayReminder.innerHTML = `今天是<strong>${label}</strong>，請手動選擇上課日。`;
+    return;
+  }
+  todayReminder.innerHTML = `今天是<strong>${DAYS[today]}</strong>。<button type="button">使用今天的星期</button>`;
+  todayReminder.querySelector("button").addEventListener("click", () => {
+    form.querySelector("#day-select").value = today;
   });
-  if (!sessions.length) grid.insertAdjacentHTML('beforeend', '<div class="empty-state">從左側加入原有課堂，開始建立你的時間表</div>');
 }
 
-function analyze(keys = selected) {
-  const sessions = keys.flatMap(key => classSessions(key));
-  const byDay = new Map(); for (let day=1; day<=6; day++) byDay.set(day, sessions.filter(x => x.day === day).sort((a,b) => parseTime(a.time).start - parseTime(b.time).start));
-  let maxStreak = 0; let dailyMax = 0;
-  for (const daySessions of byDay.values()) { dailyMax = Math.max(dailyMax, daySessions.length); let streak = 0; let previousEnd = null; for (const item of daySessions) { const t = parseTime(item.time); streak = previousEnd !== null && t.start - previousEnd <= 10 ? streak + 1 : 1; maxStreak = Math.max(maxStreak, streak); previousEnd = t.end; } }
-  return {sessions, maxStreak, dailyMax};
+function displayRooms(rooms) {
+  return rooms.split(",").map((room) => /^\d+$/.test(room) ? `${room}室` : room).join("、");
 }
 
-function updateStats() { const info = analyze(); $('courseCount').textContent = selected.length; $('weeklySessions').textContent = info.sessions.length; $('maxStreak').textContent = info.maxStreak; const status = $('statusCard'); const text = $('statusText'); if (!selected.length) { text.textContent = '尚未加入原有課堂'; status.classList.remove('ok'); } else if (info.maxStreak > 3 || info.dailyMax > 4) { text.textContent = '需要調整'; status.classList.add('bad'); } else { text.textContent = '安排有效'; status.classList.add('ok'); } }
-function renderAll() { renderSidebar(); renderTimetable(); updateStats(); persistUserState(); }
-function toast(message, error = false) { const el=$('toast'); el.textContent=message; el.className=`toast show${error?' error':''}`; clearTimeout(window.toastTimer); window.toastTimer=setTimeout(()=>el.className='toast', 4200); }
-function askSaveAfterChange(action) { const plan=savedPlans.find(item=>item.id===activePlanId); if (!plan) return; const shouldSave=window.confirm(`你已${action}「${plan.name}」。\n是否需要儲存？`); if (shouldSave) saveCurrentPlan(); else toast('修改尚未儲存到此計劃，可按「儲存到當前計劃」再儲存。'); }
-function updateUserBar() { const name=currentUser || '未登入'; $('currentUserLabel').textContent=name; $('userAvatar').textContent=currentUser ? name.trim().charAt(0).toUpperCase() : '?'; $('switchUserBtn').textContent=currentUser ? '切換' : '登入'; $('logoutBtn').hidden=!currentUser; $('adminBtn').hidden=!isAdmin; }
-function updateActivePlanControl() { const button=$('saveCurrentPlanBtn'); if (button) button.hidden=!activePlanId; }
-function setAuthMode(mode) { authMode=mode; const register=mode==='register'; $('loginModeBtn').classList.toggle('active', !register); $('registerModeBtn').classList.toggle('active', register); $('loginTitle').textContent=register ? '建立你的時間表' : '登入你的時間表'; $('loginBtn').innerHTML=register ? '<span>→</span> 建立帳戶' : '<span>→</span> 登入'; $('passwordInput').autocomplete=register ? 'new-password' : 'current-password'; }
-function openLogin() { setAuthMode('login'); $('loginNameInput').value=currentUser; $('passwordInput').value=''; $('loginBackdrop').hidden=false; $('loginNameInput').focus(); }
-async function loginUser() { const name=$('loginNameInput').value.trim(); const password=$('passwordInput').value; if (!name) { toast('請先輸入名稱。', true); return; } if (password && password.length < 8) { toast('密碼最少需要 8 個字元。', true); return; } persistUserState(); const button=$('loginBtn'); button.disabled=true; button.innerHTML='<span>↻</span> 處理中'; try { const endpoint=authMode==='register' ? '/api/auth/register' : '/api/auth/login'; const response=await fetch(endpoint, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name,password})}); const result=await response.json(); if (!response.ok) throw new Error(result.error || '登入失敗'); currentUser=result.name || name; isAdmin=Boolean(result.isAdmin); remoteHydrated=false; const state=await fetchUserState(currentUser); if (!state) throw new Error('登入 session 未能建立，請重試。'); selected=state.selected; savedPlans=state.savedPlans; originalSelected=state.originalSelected; replacementHistory=state.replacementHistory; replacementKeys=state.replacementKeys; isAdmin=state.isAdmin || isAdmin; alternativeOriginalKey=null; alternativeKey=null; alternativeKeys=[]; remoteHydrated=true; localStorage.setItem('spacePlannerCurrentUser', currentUser); updateUserBar(); $('loginBackdrop').hidden=true; renderAll(); toast(authMode==='register' ? `帳戶已建立：${currentUser}` : `已登入：${currentUser}`); } catch (error) { toast(error.message || '登入失敗，請重試。', true); } finally { button.disabled=false; setAuthMode(authMode); } }
-async function logoutUser() { persistUserState(); await fetch('/api/auth/logout', {method:'POST'}).catch(() => {}); currentUser=''; isAdmin=false; selected=[]; savedPlans=[]; originalSelected=[]; replacementHistory=[]; replacementKeys=[]; courseMeta={}; activePlanId=null; alternativeOriginalKey=null; alternativeKey=null; alternativeKeys=[]; remoteHydrated=false; localStorage.removeItem('spacePlannerCurrentUser'); updateUserBar(); renderAll(); openLogin(); }
-async function openAdminPanel() { if (!isAdmin) { toast('沒有管理員權限。', true); return; } $('adminBackdrop').hidden=false; $('adminUsersList').innerHTML='<div class="admin-empty">讀取中...</div>'; try { const response=await fetch('/api/admin/users'); const result=await response.json(); if (!response.ok) throw new Error(result.error || '讀取失敗'); const users=result.users || []; $('adminSummary').textContent=`共 ${users.length} 個帳戶`; $('adminUsersList').innerHTML=users.length ? users.map(user => `<article class="admin-user"><div class="admin-user-head"><strong>${escapeHtml(user.name)}</strong><span class="admin-role">${user.role === 'admin' ? '管理員' : '用戶'}</span></div><div class="admin-user-meta">已選課堂 ${user.selected.length} 門 · 儲存計劃 ${user.savedPlans.length} 個</div><div class="admin-user-courses">${user.selected.length ? user.selected.map(escapeHtml).join('、') : '尚未加入課堂'}</div></article>`).join('') : '<div class="admin-empty">目前沒有用戶資料。</div>'; } catch (error) { $('adminSummary').textContent=''; $('adminUsersList').innerHTML=`<div class="admin-empty">${escapeHtml(error.message || '讀取失敗')}</div>`; } }
-
-function validateReplacement(originalKey, replacementKey, baseKeys = selected) {
-  const original = classSessions(originalKey); const replacement = classSessions(replacementKey); if (!replacement.length) return '找不到這個替換班別。';
-  const originalTypes = new Set(original.map(x => classTypeOf(x.no))); const replacementTypes = new Set(replacement.map(x => classTypeOf(x.no)));
-  const typeConflict = [...originalTypes].some(from => NON_MIXABLE_CLASS_TYPES.has(from) && [...replacementTypes].some(to => NON_MIXABLE_CLASS_TYPES.has(to) && from !== to));
-  if (typeConflict) return `班別類型限制：${[...originalTypes].join('、')} 不能替換成 ${[...replacementTypes].join('、')}。查詢已終止。`;
-  const oldCampus = new Set(original.map(x => campusOf(x.room))); const newCampus = new Set(replacement.map(x => campusOf(x.room)));
-  const campusCompatible = [...oldCampus].every(old => [...newCampus].every(next => campusesCompatible(old, next)));
-  if (!campusCompatible) return `校區限制：${[...oldCampus].join('、')} 不能跨往 ${[...newCampus].join('、')}。查詢已終止。`;
-  const otherKeys = baseKeys.filter(k => k !== originalKey && k !== replacementKey); const check = analyze([...otherKeys, replacementKey]);
-  if (hasScheduleConflict([...otherKeys, replacementKey])) return '由於課堂時間衝突，無法替換。';
-  if (check.maxStreak > 3) return '連堂限制：替換後會出現超過 3 堂連續課堂（4.5 小時）。查詢已終止。';
-  if (check.dailyMax > 4) return '每日限制：替換後會超過 4 堂課（6 小時）。查詢已終止。';
-  return null;
+function showResult(content, state = "") {
+  result.hidden = false;
+  result.className = `result-panel ${state}`.trim();
+  result.innerHTML = content;
 }
 
-function hasScheduleConflict(keys) { const sessions = keys.flatMap(key => classSessions(key)); for (let i=0; i<sessions.length; i++) { const a=parseTime(sessions[i].time); for (let j=i+1; j<sessions.length; j++) { if (sessions[i].day !== sessions[j].day) continue; const b=parseTime(sessions[j].time); if (a.start < b.end && b.start < a.end) return true; } } return false; }
-function hasSameCourseClassConflict(keys) { const seen = new Set(); for (const key of keys) { const [code, no] = key.split('|'); const marker = `${code}|${classTypeOf(no)}`; if (seen.has(marker)) return true; seen.add(marker); } return false; }
-
-function fillReplacementOptions() { const originalKey = $('originalSelect').value; const item = uniqueClasses().find(x => courseKey(x) === originalKey); const options = uniqueClasses().filter(x => x.code === item?.code); $('replacementSelect').innerHTML = options.map(x => `<option value="${escapeHtml(courseKey(x))}">${escapeHtml(x.code)} ${escapeHtml(x.no)}</option>`).join(''); updatePreview(); }
-function updatePreview() { const replacements = [...$('replacementSelect').selectedOptions].map(option => option.value); const previews = replacements.flatMap(replacement => classSessions(replacement).map(x => `<strong>${escapeHtml(displayClass(replacement))}</strong> · ${escapeHtml(DAY_NAMES[x.day])} · ${escapeHtml(x.time)} · ${escapeHtml(x.room)}`)); $('replacementPreview').innerHTML = previews.length ? previews.join('<br>') : '請選擇一個或多個替換班別。'; }
-function openModal() { if (!selected.length) { toast('請先加入至少一個課堂。', true); return; } $('originalSelect').innerHTML = selected.map(key => `<option value="${escapeHtml(key)}">${escapeHtml(displayClass(key))}</option>`).join(''); fillReplacementOptions(); $('modalBackdrop').hidden=false; }
-function closeModal() { $('modalBackdrop').hidden=true; }
-function populatePlanReplacementOptions() { const originalKey = $('planOriginalSelect').value; const item = uniqueClasses().find(x => courseKey(x) === originalKey); const options = uniqueClasses().filter(x => x.code === item?.code); $('planReplacementSelect').innerHTML = options.map(x => `<option value="${escapeHtml(courseKey(x))}">${escapeHtml(x.code)} ${escapeHtml(x.no)}</option>`).join(''); updatePlanPreview(); }
-function updatePlanPreview() { const replacement = $('planReplacementSelect').value; const sessions = classSessions(replacement); $('planPreview').innerHTML = sessions.length ? `<strong>${escapeHtml(displayClass(replacement))}</strong><br>${sessions.map(x => `${escapeHtml(DAY_NAMES[x.day])} · ${escapeHtml(x.time)} · ${escapeHtml(x.room)}`).join('<br>')}` : '請先選擇替換班別。'; }
-function openPlanModal(planId = null) { const plan = savedPlans.find(item => item.id === planId); const recent = plan?.replacementHistory?.at(-1) || replacementHistory.at(-1); const original = plan?.originalKey || alternativeOriginalKey || recent?.from; const replacement = plan?.replacementKey || alternativeKey || recent?.to; if (!original || !replacement) { toast('儲存計劃目前需要先完成一次替換。', true); return; } editingPlanId = planId; planDirty = false; $('planModalTitle').textContent = plan ? '編輯儲存計劃' : '儲存計劃課堂'; $('planNameInput').value = plan?.name || `${displayClass(original)} → ${displayClass(replacement)}`; const planKeys = plan ? [original, ...plan.selected] : [original, ...selected]; $('planOriginalSelect').innerHTML = [...new Set(planKeys)].map(key => `<option value="${escapeHtml(key)}">${escapeHtml(displayClass(key))}</option>`).join(''); $('planOriginalSelect').value = plan?.originalKey || original; populateReplacementPlanOptionsFor(original); $('planReplacementSelect').value = plan?.replacementKey || replacement; renderPlanCourses(plan); updatePlanPreview(); $('planModalBackdrop').hidden=false; $('planNameInput').focus(); }
-function populateReplacementPlanOptionsFor(originalKey) { const item=uniqueClasses().find(x=>courseKey(x)===originalKey); const options=uniqueClasses().filter(x=>x.code===item?.code); $('planReplacementSelect').innerHTML=options.map(x=>`<option value="${escapeHtml(courseKey(x))}">${escapeHtml(x.code)} ${escapeHtml(x.no)}</option>`).join(''); }
-function closePlanModal(force = false) { if (!force && editingPlanId && planDirty) { if (window.confirm('計劃有未儲存修改，是否需要保存？')) { savePlan(); return; } } $('planModalBackdrop').hidden=true; editingPlanId=null; planDirty=false; }
-function resolveUnsavedPlan() { if (!editingPlanId || !planDirty) return true; if (window.confirm('計劃有未儲存修改，是否需要保存？')) return savePlan(); closePlanModal(true); return true; }
-function renderPlanCourses(plan) { const el=$('planCourses'); if (!plan) { el.hidden=true; el.innerHTML=''; return; } el.hidden=false; el.innerHTML=uniqueClasses().sort((a,b)=>courseKey(a).localeCompare(courseKey(b))).map(item => { const key=courseKey(item); return `<label class="original-plan-option"><input type="checkbox" value="${escapeHtml(key)}"${plan.selected.includes(key) ? ' checked' : ''}><span>${escapeHtml(displayClass(key))}</span></label>`; }).join(''); el.querySelectorAll('input').forEach(input => input.addEventListener('change', () => { planDirty=true; })); }
-function savePlan() { const originalKey=$('planOriginalSelect').value; const replacementKey=$('planReplacementSelect').value; const existingPlan=editingPlanId ? savedPlans.find(x=>x.id===editingPlanId) : null; const previousReplacement=existingPlan?.replacementKey || ''; const manuallySelected=existingPlan ? [...$('planCourses').querySelectorAll('input:checked')].map(input=>input.value) : []; const planSelected=existingPlan ? manuallySelected : [...new Set([...selected])]; if (!planSelected.length) { toast('計劃至少需要一門課堂。', true); return false; } if (hasScheduleConflict(planSelected) || hasSameCourseClassConflict(planSelected)) { toast('課堂時間衝突，無法儲存計劃。', true); return false; } const baseKeys=existingPlan ? planSelected.filter(key=>key!==replacementKey && key!==originalKey) : selected; const error=validateReplacement(originalKey,replacementKey,baseKeys); if (error) { toast(error, true); return false; } const name=$('planNameInput').value.trim() || `${displayClass(originalKey)} → ${displayClass(replacementKey)}`; const history=existingPlan?.replacementHistory?.length ? [...existingPlan.replacementHistory] : [...replacementHistory]; if (existingPlan && previousReplacement !== replacementKey) history.push({from:originalKey,to:replacementKey}); const record={id:editingPlanId || `plan-${Date.now()}`,name,selected:planSelected,originalKey,replacementKey,replacementHistory:history,updatedAt:new Date().toISOString()}; if (editingPlanId) savedPlans=savedPlans.map(plan=>plan.id===editingPlanId?record:plan); else savedPlans=[record,...savedPlans]; persistSavedPlans(); selected=[...record.selected]; replacementKeys=[...new Set(history.map(item=>item.to))].filter(key=>selected.includes(key)); alternativeOriginalKey=null; alternativeKey=null; alternativeKeys=[]; closePlanModal(true); renderAll(); toast(`已儲存計劃：${name}`); return true; }
-function loadPlan(planId) { if (!resolveUnsavedPlan()) return; const plan=savedPlans.find(item=>item.id===planId); if (!plan) return; selected=[...plan.selected]; replacementHistory=plan.type === 'original' ? [] : validReplacementHistory(plan.replacementHistory); replacementKeys=plan.type === 'original' ? [] : [...new Set((plan.replacementHistory || []).map(item => item.to).concat(plan.replacementKey || []))]; activePlanId=plan.id; originalPlanSnapshot=plan.type === 'original' ? JSON.stringify(selected) : ''; activePlanSnapshot=plan.type === 'original' ? '' : JSON.stringify({selected,replacementHistory}); alternativeOriginalKey=null; alternativeKey=null; alternativeKeys=[]; renderAll(); toast(`已載入計劃：${plan.name}`); }
-function historyOptions(selectedKeys, selectedValue, code = '') { const keys=[...new Set([...selectedKeys, ...uniqueClasses().filter(item=>!code || item.code===code).map(courseKey), selectedValue])].filter(Boolean).sort(); return keys.map(key=>`<option value="${escapeHtml(key)}"${key===selectedValue?' selected':''}>${escapeHtml(displayClass(key))}</option>`).join(''); }
-function renderPlanInfoHistory(plan) { const history=validReplacementHistory(plan.replacementHistory); const allKeys=[...plan.selected, ...history.flatMap(item=>[item.from,item.to])]; $('planInfoHistory').innerHTML=history.length ? history.map((item,index)=>`<div class="plan-history-row" data-history-row="${index}"><select data-history-from="${index}" aria-label="第 ${index+1} 項原有課堂">${historyOptions(allKeys,item.from)}</select><span>→</span><select data-history-to="${index}" aria-label="第 ${index+1} 項替換班別">${historyOptions(allKeys,item.to,item.from.split('|')[0])}</select><button type="button" class="history-delete" data-history-delete="${index}" title="刪除此項歷史">×</button></div>`).join('') : '<div class="helper-text">目前沒有替換歷史。</div>'; $('planInfoHistory').querySelectorAll('[data-history-from]').forEach(select=>select.addEventListener('change',()=>{ const row=select.closest('[data-history-row]'); const to=row.querySelector('[data-history-to]'); const code=select.value.split('|')[0]; to.innerHTML=historyOptions(allKeys,to.value,code); })); $('planInfoHistory').querySelectorAll('[data-history-delete]').forEach(button=>button.addEventListener('click',()=>button.closest('[data-history-row]').remove())); }
-function openPlanInfo(planId) { const plan=savedPlans.find(item=>item.id===planId); if (!plan) return; infoPlanId=planId; $('planInfoModalTitle').textContent=plan.name; $('planInfoNameInput').value=plan.name; $('planInfoNotes').value=plan.notes || ''; const sessions=plan.selected.flatMap(key=>classSessions(key).map(item=>({...item,key}))).sort((a,b)=>a.day-b.day||parseTime(a.time).start-parseTime(b.time).start); $('planInfoCourses').innerHTML=sessions.length ? sessions.map(item=>`<div class="plan-info-course"><strong>${escapeHtml(displayClass(item.key))}</strong><span>${escapeHtml(item.name)}</span>${courseMetaLabel(item.key) ? `<small class="course-instructor">${escapeHtml(courseMetaLabel(item.key))}</small>` : ''}<small>${escapeHtml(DAY_NAMES[item.day])} · ${escapeHtml(item.time)} · ${escapeHtml(item.room)}</small></div>`).join('') : '<div class="helper-text">此計劃沒有課堂資料。</div>'; renderPlanInfoHistory(plan); $('planInfoModalBackdrop').hidden=false; $('planInfoNameInput').focus(); }
-function closePlanInfo() { $('planInfoModalBackdrop').hidden=true; infoPlanId=null; }
-function savePlanInfo() { const plan=savedPlans.find(item=>item.id===infoPlanId); if (!plan) return; const history=[...$('planInfoHistory').querySelectorAll('[data-history-row]')].map(row=>({from:row.querySelector('[data-history-from]').value,to:row.querySelector('[data-history-to]').value})).filter(item=>item.from && item.to); plan.name=$('planInfoNameInput').value.trim() || plan.name; plan.notes=$('planInfoNotes').value.trim(); plan.replacementHistory=history; plan.originalKey=history.length ? history[0].from : ''; plan.replacementKey=history.length ? history.at(-1).to : ''; if (activePlanId===plan.id) { replacementHistory=history; replacementKeys=[...new Set(history.map(item=>item.to))].filter(key=>selected.includes(key)); } plan.updatedAt=new Date().toISOString(); persistSavedPlans(); closePlanInfo(); renderAll(); toast(`已更新計劃資訊：${plan.name}`); }
-function saveCurrentPlan() { const plan=savedPlans.find(item=>item.id===activePlanId); if (!plan) { activePlanId=null; updateActivePlanControl(); return; } if (!selected.length) { toast('當前計劃至少需要一門課堂。', true); return; } if (hasScheduleConflict(selected) || hasSameCourseClassConflict(selected)) { toast('課堂時間衝突，無法儲存當前計劃。', true); return; } const history=validReplacementHistory(replacementHistory); plan.selected=[...selected]; plan.replacementHistory=history; plan.replacementKey=history.at(-1)?.to || plan.replacementKey; plan.updatedAt=new Date().toISOString(); replacementKeys=[...new Set(history.map(item=>item.to))].filter(key=>selected.includes(key)); activePlanSnapshot=plan.type==='original' ? '' : JSON.stringify({selected,replacementHistory}); persistSavedPlans(); renderAll(); toast(`已儲存到當前計劃：${plan.name}`); }
-function saveLoadedOriginalPlan() { const plan=savedPlans.find(item=>item.id===activePlanId && item.type==='original'); if (!plan) return false; if (!selected.length) { toast('原有計劃至少需要一門課堂。', true); return false; } if (hasScheduleConflict(selected) || hasSameCourseClassConflict(selected)) { toast('課堂時間衝突，無法更新原有計劃。', true); return false; } plan.selected=[...selected]; plan.updatedAt=new Date().toISOString(); originalSelected=[...selected]; replacementHistory=[]; replacementKeys=[]; originalPlanSnapshot=JSON.stringify(selected); persistUserState(); renderAll(); toast(`已更新原有計劃：${plan.name}`); return true; }
-function activePlanDirty() { const plan=savedPlans.find(item=>item.id===activePlanId && item.type!=='original'); return Boolean(plan && activePlanSnapshot !== JSON.stringify({selected, replacementHistory})); }
-function createAnotherPlanFromCurrent() { const source=savedPlans.find(item=>item.id===activePlanId); if (!source || !selected.length) return false; if (hasScheduleConflict(selected) || hasSameCourseClassConflict(selected)) { toast('課堂時間衝突，無法建立新計劃。', true); return false; } const name=window.prompt('請輸入新計劃名稱：', `${source.name}（副本）`); if (!name?.trim()) return false; const copy={...source,id:`plan-${Date.now()}`,name:name.trim(),selected:[...selected],replacementHistory:validReplacementHistory(replacementHistory),updatedAt:new Date().toISOString()}; savedPlans=[copy,...savedPlans]; activePlanId=copy.id; activePlanSnapshot=JSON.stringify({selected,replacementHistory}); persistSavedPlans(); renderAll(); toast(`已建立新計劃：${copy.name}`); return true; }
-function promptActivePlanSave() { const plan=savedPlans.find(item=>item.id===activePlanId && item.type!=='original'); if (!plan || !activePlanDirty()) return false; if (window.confirm(`你已修改「${plan.name}」，是否儲存到此計劃？`)) { saveCurrentPlan(); return true; } if (window.confirm('是否建立另外的計劃？')) createAnotherPlanFromCurrent(); return true; }
-function openOriginalPlanEditor(planId) { const plan=savedPlans.find(item=>item.id===planId && item.type==='original'); if (!plan) return; editingOriginalPlanId=planId; originalPlanDirty=false; $('originalPlanCourses').innerHTML=uniqueClasses().sort((a,b)=>courseKey(a).localeCompare(courseKey(b))).map(item => `<label class="original-plan-option"><input type="checkbox" value="${escapeHtml(courseKey(item))}"${plan.selected.includes(courseKey(item)) ? ' checked' : ''}><span>${escapeHtml(displayClass(courseKey(item)))}</span></label>`).join(''); $('originalPlanModalBackdrop').hidden=false; }
-function closeOriginalPlanEditor(force = false) { if (!force && !originalPlanSaveInProgress && !confirmOriginalPlanChanges()) return; $('originalPlanModalBackdrop').hidden=true; editingOriginalPlanId=null; originalPlanDirty=false; }
-function confirmOriginalPlanChanges() { if (!editingOriginalPlanId || !originalPlanDirty) return true; if (window.confirm('原有計劃有未儲存修改，是否更新原有計劃？')) { originalPlanSaveInProgress=true; saveOriginalPlanEdits(); originalPlanSaveInProgress=false; return true; } return false; }
-function saveOriginalPlanEdits() { const plan=savedPlans.find(item=>item.id===editingOriginalPlanId); if (!plan) return; const keys=[...$('originalPlanCourses').querySelectorAll('input:checked')].map(input=>input.value); if (!keys.length) { toast('原有計劃至少需要一門課堂。', true); return; } if (hasScheduleConflict(keys)) { toast('課堂時間衝突，無法儲存原有計劃。', true); return; } plan.selected=keys; plan.updatedAt=new Date().toISOString(); originalSelected=[...keys]; persistUserState(); closeOriginalPlanEditor(); renderAll(); toast('已更新原有計劃。'); }
-function deletePlan(planId) { const plan=savedPlans.find(item=>item.id===planId); if (!plan) return; savedPlans=savedPlans.filter(item=>item.id!==planId); if (activePlanId===planId) activePlanId=null; persistSavedPlans(); renderAll(); toast(`已刪除計劃：${plan.name}`); }
-function searchSlotsForCode(code) { return [...new Map(dataset.filter(item => item.code === code).map(item => [`${item.day}|${item.time}`, item])).values()].sort((a,b) => a.day - b.day || parseTime(a.time).start - parseTime(b.time).start); }
-function updateSearchTimeOptions() { const code=$('searchCourseCodeInput').value.trim().toUpperCase(); const options=searchSlotsForCode(code); const container=$('searchTimeOptions'); $('searchTimeHint').textContent=options.length ? `${options.length} 個可選時段` : (code ? '找不到此 Course Code' : '先輸入 Course Code'); $('searchResults').textContent='請選擇時間後按「搜尋班別」。'; if (!options.length) { container.innerHTML='<div class="helper-text">找不到此 Course Code，請檢查輸入是否正確。</div>'; return; } container.innerHTML=options.map(item => `<label class="search-time-option"><input type="checkbox" value="${escapeHtml(`${item.day}|${item.time}`)}"><span>${escapeHtml(DAY_NAMES[item.day])} · ${escapeHtml(item.time)}</span></label>`).join(''); }
-function runClassSearch() { const code=$('searchCourseCodeInput').value.trim().toUpperCase(); const requested=[...$('searchTimeOptions').querySelectorAll('input:checked')].map(input => input.value); if (!code) { toast('請先輸入 Course Code。', true); return; } if (!requested.length) { toast('請至少選擇一個上課時間。', true); return; } const requestedSet=new Set(requested); const grouped=new Map(); dataset.filter(item => item.code === code).forEach(item => { const key=courseKey(item); if (!grouped.has(key)) grouped.set(key, []); grouped.get(key).push(item); }); const matches=[...grouped.entries()].filter(([,sessions]) => { const slots=new Set(sessions.map(item => `${item.day}|${item.time}`)); return [...requestedSet].every(slot => slots.has(slot)); }).sort(([a],[b]) => a.localeCompare(b)); $('searchResults').innerHTML=matches.length ? matches.map(([,sessions]) => `<div class="search-result"><strong>${escapeHtml(sessions[0].no)}</strong><span class="search-result-name">${escapeHtml(sessions[0].name)}</span><div class="search-result-sessions">${sessions.sort((a,b) => a.day - b.day || parseTime(a.time).start - parseTime(b.time).start).map(item => `${escapeHtml(DAY_NAMES[item.day])} · ${escapeHtml(item.time)} · ${escapeHtml(item.room)}`).join('<br>')}</div></div>`).join('') : '沒有班別同時符合所選的全部時段。'; }
-function openSearchModal() { $('searchCourseCodeInput').value=''; $('searchTimeOptions').innerHTML='<div class="helper-text">輸入課程編號後，這裡會列出可選時段。</div>'; $('searchTimeHint').textContent='先輸入 Course Code'; $('searchResults').textContent='請輸入課程編號並選擇時間。'; $('searchModalBackdrop').hidden=false; $('searchCourseCodeInput').focus(); }
-function closeSearchModal() { $('searchModalBackdrop').hidden=true; }
-function teacherRecords() { const records=new Map(); Object.entries(courseMeta).forEach(([key, meta]) => { const instructor=(meta?.instructor || '').trim(); if (!instructor) return; const record=records.get(instructor.toLowerCase()) || {name:instructor, keys:new Set(), notes:new Set()}; record.keys.add(key); (meta.teaches || []).forEach(relatedKey => record.keys.add(relatedKey)); if (meta.note) record.notes.add(meta.note); records.set(instructor.toLowerCase(), record); }); return [...records.values()]; }
-function renderTeacherSearchResults(query) { const term=String(query || '').trim().toLowerCase(); const target=$('teacherSearchResults'); if (!term) { target.textContent='請輸入導師姓名。'; return; } const matches=teacherRecords().filter(record => record.name.toLowerCase().includes(term)).sort((a,b)=>a.name.localeCompare(b.name)); if (!matches.length) { target.textContent='找不到此導師的資料。請先在課堂資訊中輸入導師姓名。'; return; } target.innerHTML=matches.map(record => `<div class="teacher-result"><strong>${escapeHtml(record.name)}</strong>${[...record.keys].sort().map(key => { const sessions=classSessions(key).sort((a,b)=>a.day-b.day||parseTime(a.time).start-parseTime(b.time).start); return `<div class="teacher-result-course">${escapeHtml(teacherClassLabel(key))}</div><div class="teacher-result-sessions">${sessions.length ? sessions.map(item => `${escapeHtml(item.name)} · ${escapeHtml(DAY_NAMES[item.day])} · ${escapeHtml(item.time)} · ${escapeHtml(item.room)}`).join('<br>') : '未有目前時間資料'}</div>`; }).join('')}${[...record.notes].map(note=>`<div class="teacher-result-note">老師評價／備注：${escapeHtml(note)}</div>`).join('')}</div>`).join(''); }
-function openTeacherSearch() { $('teacherSearchInput').value=''; $('teacherSearchResults').textContent='請輸入導師姓名。'; $('teacherSearchModalBackdrop').hidden=false; $('teacherSearchInput').focus(); }
-function closeTeacherSearch() { $('teacherSearchModalBackdrop').hidden=true; }
-function openTeacherAssignment() { $('teacherAssignmentNameInput').value=''; $('teacherAssignmentCodeInput').value=''; $('teacherAssignmentOptions').innerHTML='<div class="helper-text">輸入 Course Code 後選擇班別。</div>'; $('teacherAssignmentModalBackdrop').hidden=false; $('teacherAssignmentNameInput').focus(); }
-function closeTeacherAssignment() { $('teacherAssignmentModalBackdrop').hidden=true; }
-function updateTeacherAssignmentOptions() { const code=$('teacherAssignmentCodeInput').value.trim().toUpperCase(); const teacher=$('teacherAssignmentNameInput').value.trim().toLowerCase(); const options=uniqueClasses().filter(item=>item.code===code).sort((a,b)=>a.no.localeCompare(b.no)); const existing=new Set(Object.entries(courseMeta).filter(([,meta])=>(meta.instructor || '').trim().toLowerCase()===teacher).map(([key])=>key)); $('teacherAssignmentOptions').innerHTML=options.length ? `<div class="teacher-picker-heading">請多選 ${escapeHtml(code)} 的 Class No：</div>${options.map(item=>{ const key=courseKey(item); return `<label class="teacher-picker-option"><input type="checkbox" value="${escapeHtml(key)}"${existing.has(key) ? ' checked' : ''}><span>${escapeHtml(item.no)}</span><small>${escapeHtml(item.name)}</small></label>`; }).join('')}` : (code ? '<div class="helper-text">找不到此 Course Code。</div>' : '<div class="helper-text">輸入 Course Code 後選擇班別。</div>'); }
-function saveTeacherAssignment() { const teacher=$('teacherAssignmentNameInput').value.trim(); const code=$('teacherAssignmentCodeInput').value.trim().toUpperCase(); const keys=[...$('teacherAssignmentOptions').querySelectorAll('input:checked')].map(input=>input.value); if (!teacher || !code) { toast('請輸入導師名稱及 Course Code。', true); return; } if (!keys.length) { toast('請至少選擇一個 Class No。', true); return; } Object.entries(courseMeta).forEach(([key,meta])=>{ if (key.startsWith(`${code}|`) && (meta.instructor || '').trim().toLowerCase()===teacher.toLowerCase()) { const next={...meta,instructor:''}; if (!next.note && !next.teaches?.length) delete courseMeta[key]; else courseMeta[key]=next; } }); keys.forEach(key=>{ const meta=courseMeta[key] || {}; courseMeta[key]={...meta,instructor:teacher}; }); persistUserState(); closeTeacherAssignment(); renderAll(); toast(`已儲存 ${teacher} 的 ${keys.length} 個班別。`); }
-function openConfirmAction(action) { confirmAction=action; $('confirmActionTitle').textContent=action==='clearTeacher' ? '確認清理老師任教資料' : '確認清理舊學年課堂'; $('confirmActionMessage').textContent=action==='clearTeacher' ? '清理後會刪除所有老師名稱及老師評價／備注資料，是否繼續？' : '清理後會刪除目前課堂資料、已選課堂、計劃及替換歷史，請先確定已準備好匯入新年度 PDF。是否繼續？'; $('confirmActionModalBackdrop').hidden=false; }
-function closeConfirmAction() { confirmAction=''; $('confirmActionModalBackdrop').hidden=true; }
-function runConfirmedAction() { if (confirmAction==='clearTeacher') { courseMeta={}; persistUserState(); closeConfirmAction(); renderAll(); toast('已清理老師任教資料。'); return; } if (confirmAction==='clearAcademic') { dataset=[]; selected=[]; savedPlans=[]; originalSelected=[]; replacementHistory=[]; replacementKeys=[]; courseMeta={}; alternativeOriginalKey=null; alternativeKey=null; alternativeKeys=[]; persistUserState(); closeConfirmAction(); renderAll(); toast('已清理舊學年課堂資料，請匯入新年度 PDF。'); } }
-function resetForNewAcademicData() { selected=[]; savedPlans=[]; originalSelected=[]; replacementHistory=[]; replacementKeys=[]; courseMeta={}; alternativeOriginalKey=null; alternativeKey=null; alternativeKeys=[]; }
-function openNoticeModal(type) { const rules=type==='rules'; $('noticeModalTitle').textContent=rules?'學期規則':'免責聲明'; $('noticeModalContent').innerHTML=rules ? `<h3>2026–27 年第一學期</h3><ul><li>每次課選須配對一次加選；每次提交最多 4 個配對，全學期最多 15 個配對，包括同學互換。</li><li>不同校園之間須預留至少 90 分鐘。</li><li>連續上課不得超過 3 個教學時段（4.5 小時），之後須有 90 分鐘休息。</li></ul><p>根據副學士二年級指引，請前往 Learner Portal 確認課程要求、可選校園、學額及選班期限，並申請班別變更。</p>` : `<p>2026–27 第 1 學期的總時間表，更新日期：8 September 2026。</p><p>本網站與香港大學附屬學院並無官方聯繫。</p><div class="notice-warning"><strong>此編排不會替你註冊或更改班別。</strong> 編排檢查採用副學士二年級指引；各課程要求可能有所不同。請在以下網站確認時間表、資格、學額及截止日：<a href="https://learner.hkuspace.hku.hk/" target="_blank" rel="noopener">Learner Portal</a>。</div><p>你的編排資料只會儲存於此瀏覽器。清除瀏覽資料或網站儲存空間、使用其他瀏覽器或裝置，均可能永久刪除資料。進行上述操作前，請備份重要資料。</p><p>本網站的資料可能不完整、過時或不正確。請向官方來源核實所有資料；創作者不會就使用或依賴本網站所引致的任何損失或損害承擔責任。</p>`; $('noticeModalBackdrop').hidden=false; }
-function closeNoticeModal() { $('noticeModalBackdrop').hidden=true; }
-function updateSidebarControls() { const collapsed=document.body.classList.contains('sidebar-collapsed'); const expanded=String(!collapsed); const top=$('sidebarToggleBtn'); const inside=$('sidebarCollapseBtn'); const handle=$('sidebarHandleBtn'); if (top) { top.setAttribute('aria-expanded', expanded); top.innerHTML=collapsed?'<span>☰</span> 開啟側欄':'<span>☰</span> 側欄'; } if (inside) { inside.setAttribute('aria-expanded', expanded); inside.innerHTML=collapsed?'<span>›</span> 開啟側欄':'<span>‹</span> 收起側欄'; } if (handle) { handle.setAttribute('aria-expanded', expanded); handle.setAttribute('aria-label', collapsed?'開啟側欄':'收起側欄'); handle.innerHTML=collapsed?'<span>›</span>':'<span>‹</span>'; } }
-function toggleSidebar() { document.body.classList.toggle('sidebar-collapsed'); updateSidebarControls(); }
-function parseTeacherAssignments(value) { const assignments=new Map(); let teacher=''; let courseCode=''; String(value || '').split(/\r?\n/).forEach(line => { const text=line.trim(); if (!text) return; const heading=text.match(/^(.+?)\s*[:：]\s*$/); if (heading) { teacher=heading[1].trim(); courseCode=''; return; } if (!teacher) return; text.split(/[,，、;；]+/).map(item=>item.trim()).filter(Boolean).forEach(item => { const parts=item.toUpperCase().replace(/\|/g, ' ').split(/\s+/).filter(Boolean); if (parts.length >= 2) courseCode=parts[0]; const classNo=parts.length >= 2 ? parts[1] : parts[0]; const key=courseCode && classNo ? `${courseCode}|${classNo}` : ''; if (!key) return; const record=assignments.get(teacher.toLowerCase()) || {name:teacher, keys:new Set()}; record.keys.add(key); assignments.set(teacher.toLowerCase(), record); }); }); return [...assignments.values()]; }
-function saveTeacherAssignments(assignments) { let count=0; assignments.forEach(record => record.keys.forEach(key => { const meta=courseMeta[key] || {}; courseMeta[key]={...meta,instructor:record.name}; count++; })); if (!count) { toast('未能辨識老師及班別，請使用「老師姓名：」格式。', true); return; } persistUserState(); renderAll(); toast(`已匯入 ${assignments.length} 位老師、${count} 個班別。`); }
-function renderTeacherClassPicker() { const query=$('teacherSearchInput').value.trim().toLowerCase(); const picker=$('teacherClassPicker'); if (!query) { picker.innerHTML='<div class="helper-text">輸入老師姓名後，可在這裡選擇其任教班別。</div>'; return; } const match=teacherRecords().find(record=>record.name.toLowerCase()===query) || teacherRecords().find(record=>record.name.toLowerCase().includes(query)); const existing=new Set(match ? [...match.keys] : []); const classes=uniqueClasses().sort((a,b)=>courseKey(a).localeCompare(courseKey(b))); picker.innerHTML=classes.length ? `<div class="teacher-picker-heading">${match ? `已記錄 ${escapeHtml(match.name)} 的班別，請勾選要保存的班別：` : '找不到現有老師資料，請先勾選班別並保存：'}</div>${classes.map(item=>{ const key=courseKey(item); return `<label class="teacher-picker-option"><input type="checkbox" value="${escapeHtml(key)}"${existing.has(key) ? ' checked' : ''}><span>${escapeHtml(displayClass(key))}</span><small>${escapeHtml(item.name)}</small></label>`; }).join('')}` : '<div class="helper-text">目前沒有可選課堂資料。</div>'; }
-function saveSelectedTeacherClasses() { const name=$('teacherSearchInput').value.trim(); if (!name) { toast('請先輸入老師姓名。', true); return; } const keys=[...$('teacherClassPicker').querySelectorAll('input:checked')].map(input=>input.value); if (!keys.length) { toast('請至少選擇一個班別。', true); return; } keys.forEach(key=>{ const meta=courseMeta[key] || {}; courseMeta[key]={...meta,instructor:name}; }); persistUserState(); renderAll(); renderTeacherSearchResults(name); renderTeacherClassPicker(); toast(`已儲存 ${name} 的 ${keys.length} 個班別。`); }
-function renderPendingCourses() { const el=$('pendingCourses'); el.innerHTML=pendingCourseKeys.length ? `<div class="pending-label">待加入 ${pendingCourseKeys.length} 門課堂</div>${pendingCourseKeys.map(key => `<div class="pending-course"><span>${escapeHtml(displayClass(key))}</span><button class="remove-pending" data-pending-remove="${escapeHtml(key)}" title="移除">×</button></div>`).join('')}` : ''; el.querySelectorAll('[data-pending-remove]').forEach(button => button.addEventListener('click', () => { pendingCourseKeys=pendingCourseKeys.filter(key => key !== button.dataset.pendingRemove); renderPendingCourses(); })); }
-function resetAddInputs() { $('courseCodeInput').value=''; $('classNoInput').value=''; $('courseMatchPreview').textContent='輸入 PDF 課堂資料中的 Course Code 及 Class No。'; }
-function openAddModal() { pendingCourseKeys=[]; resetAddInputs(); renderPendingCourses(); $('addModalBackdrop').hidden=false; $('courseCodeInput').focus(); }
-function closeAddModal() { $('addModalBackdrop').hidden=true; }
-function updateCourseMatch() { const code=$('courseCodeInput').value.trim().toUpperCase(); const no=$('classNoInput').value.trim().toUpperCase(); const match=dataset.filter(x=>x.code===code && x.no===no); $('courseMatchPreview').innerHTML=match.length ? `<strong>${escapeHtml(code)} ${escapeHtml(no)}</strong><br>${match.length} 節課堂 · ${match.map(x => `${escapeHtml(DAY_NAMES[x.day])} ${escapeHtml(x.time)}`).join('、')}` : '找不到完全相符的 Course Code 及 Class No。'; }
-function currentAddKey() { const code=$('courseCodeInput').value.trim().toUpperCase(); const no=$('classNoInput').value.trim().toUpperCase(); return {code, no, key:`${code}|${no}`}; }
-function validateAddKey(key, batch = []) { if (!classSessions(key).length) return '找不到這個 Course Code / Class No 組合。'; if (selected.includes(key) || pendingCourseKeys.includes(key) || batch.includes(key)) return '這個課堂已經在加入清單中。'; const allKeys=[...selected, ...pendingCourseKeys, ...batch, key]; if (hasScheduleConflict(allKeys) || hasSameCourseClassConflict(allKeys)) return '課堂時間衝突，無法加入課堂。'; return null; }
-function addPendingCourse() { const {key}=currentAddKey(); const error=validateAddKey(key); if (error) { toast(error, true); return false; } pendingCourseKeys.push(key); renderPendingCourses(); resetAddInputs(); $('courseCodeInput').focus(); return true; }
-function parseCsvLine(line) { const cells=[]; let value='', quoted=false; for (let i=0;i<line.length;i++) { const ch=line[i]; if (ch==='"' && line[i+1]==='"') { value+='"'; i++; } else if (ch==='"') quoted=!quoted; else if (ch===',' && !quoted) { cells.push(value.trim()); value=''; } else value+=ch; } cells.push(value.trim()); return cells; }
-function arrayBufferToBase64(buffer) { let binary=''; const bytes=new Uint8Array(buffer); const chunkSize=0x8000; for (let i=0;i<bytes.length;i+=chunkSize) binary+=String.fromCharCode(...bytes.subarray(i,i+chunkSize)); return btoa(binary); }
-
-function originalLoadedDirty() { return Boolean(activePlanId && savedPlans.find(item=>item.id===activePlanId && item.type==='original') && originalPlanSnapshot !== JSON.stringify(selected)); }
-function promptOriginalSaveOrNewPlan() { if (!activePlanId || !savedPlans.find(item=>item.id===activePlanId && item.type==='original')) return false; if (replacementHistory.length) { if (!window.confirm('你已在原有計劃上進行替換，是否儲存為新的計劃？')) return false; activePlanId=null; openPlanModal(); return true; } if (!window.confirm('你已修改原有計劃，是否更新原有計劃？')) return false; saveLoadedOriginalPlan(); return true; }
-
-function installChangeSavePrompts() {
-  const snapshot=() => JSON.stringify({selected, replacementHistory});
-  const watch=(element, action) => { if (!element) return; element.addEventListener('click', () => { const before=snapshot(); setTimeout(() => { if (before !== snapshot()) askSaveAfterChange(action); }, 0); }, true); };
-  watch($('confirmAddCourse'), '新增課程至');
-  watch($('confirmReplace'), '更改課程於');
-  $('selectedCourses')?.addEventListener('click', event => { if (!event.target.closest('[data-remove]')) return; const before=snapshot(); setTimeout(() => { if (before !== snapshot()) askSaveAfterChange('移除課程於'); }, 0); }, true);
-  $('originalPlanCourses')?.addEventListener('change', event => { if (event.target.matches('input[type="checkbox"]')) originalPlanDirty=true; });
-  $('confirmOriginalPlan')?.addEventListener('click', event => { if (!editingOriginalPlanId || !originalPlanDirty) return; event.preventDefault(); event.stopImmediatePropagation(); confirmOriginalPlanChanges(); }, true);
-  $('closeOriginalPlanModal')?.addEventListener('click', event => { if (!editingOriginalPlanId || !originalPlanDirty) return; event.preventDefault(); event.stopImmediatePropagation(); closeOriginalPlanEditor(); }, true);
-  $('cancelOriginalPlan')?.addEventListener('click', event => { if (!editingOriginalPlanId || !originalPlanDirty) return; event.preventDefault(); event.stopImmediatePropagation(); closeOriginalPlanEditor(); }, true);
-  $('savedPlans')?.addEventListener('click', event => { const button=event.target.closest('[data-plan-load]'); if (!button) return; const plan=savedPlans.find(item=>item.id===button.dataset.planLoad); if (!plan) return; event.preventDefault(); event.stopImmediatePropagation(); if (originalLoadedDirty()) { if (replacementHistory.length) { if (window.confirm('你已在原有計劃上進行替換，是否先儲存為新的計劃？')) { activePlanId=null; openPlanModal(); } return; } if (!window.confirm('你已修改原有計劃，是否更新原有計劃？')) return; if (!saveLoadedOriginalPlan()) return; } if (plan.type==='original') loadPlan(plan.id); else loadPlan(plan.id); }, true);
-  $('savePlanBtn')?.addEventListener('click', event => { if (!editingOriginalPlanId || !originalPlanDirty) return; event.preventDefault(); event.stopImmediatePropagation(); confirmOriginalPlanChanges(); }, true);
-  $('savedPlans')?.addEventListener('click', event => { const button=event.target.closest('[data-plan-load]'); if (!button) return; const plan=savedPlans.find(item=>item.id===button.dataset.planLoad); if (!plan) return; event.preventDefault(); event.stopImmediatePropagation(); if (editingOriginalPlanId && originalPlanDirty && !confirmOriginalPlanChanges()) return; if (plan.type==='original') openOriginalPlanEditor(plan.id); else loadPlan(plan.id); }, true);
-  $('savedPlans')?.addEventListener('click', event => { const button=event.target.closest('[data-plan-load]'); if (!button || !editingOriginalPlanId || !originalPlanDirty) return; event.preventDefault(); event.stopImmediatePropagation(); if (confirmOriginalPlanChanges()) loadPlan(button.dataset.planLoad); }, true);
-  $('savePlanBtn')?.addEventListener('click', event => { if (!activePlanId || !savedPlans.find(item=>item.id===activePlanId && item.type==='original')) return; event.preventDefault(); event.stopImmediatePropagation(); promptOriginalSaveOrNewPlan(); }, true);
-  $('savePlanBtn')?.addEventListener('click', event => { if (!activePlanDirty()) return; event.preventDefault(); event.stopImmediatePropagation(); promptActivePlanSave(); }, true);
-  $('savedPlans')?.addEventListener('click', event => { const button=event.target.closest('[data-plan-load]'); if (!button || !originalLoadedDirty()) return; event.preventDefault(); event.stopImmediatePropagation(); const plan=savedPlans.find(item=>item.id===button.dataset.planLoad); if (!plan) return; if (replacementHistory.length) { if (window.confirm('你已在原有計劃上進行替換，是否先儲存為新的計劃？')) { activePlanId=null; openPlanModal(); } return; } if (window.confirm('你已修改原有計劃，是否更新原有計劃？')) { if (saveLoadedOriginalPlan()) loadPlan(plan.id); } }, true);
+function errorResult() {
+  showResult(`
+    <p class="result-label">無法搜尋</p>
+    <h2 class="result-title">輸入錯誤資料無法搜索</h2>
+    <p class="result-note">請檢查班別、時間或節次後再試一次。</p>
+  `, "error");
 }
 
- $('addCourseBtn').addEventListener('click', openAddModal); $('closeAddModal').addEventListener('click', closeAddModal); $('cancelAddCourse').addEventListener('click', closeAddModal); $('courseCodeInput').addEventListener('input', updateCourseMatch); $('classNoInput').addEventListener('input', updateCourseMatch); $('addAnotherCourse').addEventListener('click', addPendingCourse); $('switchUserBtn').addEventListener('click', openLogin); $('logoutBtn').addEventListener('click', logoutUser); $('adminBtn').addEventListener('click', openAdminPanel); $('closeAdminModal').addEventListener('click', () => $('adminBackdrop').hidden=true); $('refreshAdmin').addEventListener('click', openAdminPanel); $('loginModeBtn').addEventListener('click', () => setAuthMode('login')); $('registerModeBtn').addEventListener('click', () => setAuthMode('register')); $('loginBtn').addEventListener('click', loginUser); $('loginNameInput').addEventListener('keydown', event => { if (event.key === 'Enter') loginUser(); }); $('passwordInput').addEventListener('keydown', event => { if (event.key === 'Enter') loginUser(); });
- $('confirmAddCourse').addEventListener('click', () => { const {key}=currentAddKey(); const batch=[...pendingCourseKeys]; if ($('courseCodeInput').value.trim() || $('classNoInput').value.trim()) { const error=validateAddKey(key, batch); if (error) { toast(error, true); return; } batch.push(key); } if (!batch.length) { toast('請至少輸入一個課堂。', true); return; } if (hasScheduleConflict([...selected, ...batch]) || hasSameCourseClassConflict([...selected, ...batch])) { toast('課堂時間衝突，無法加入課堂。', true); return; } selected=[...selected, ...batch]; closeAddModal(); renderAll(); toast(batch.length === 1 ? `已加入 ${displayClass(batch[0])}。` : `已加入 ${batch.length} 門課堂。`); });
- $('pdfInput').addEventListener('change', async event => { const file=event.target.files[0]; const button=document.querySelector('.pdf-upload-button'); if (!file) return; if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) { toast('請選擇 PDF 格式的 Master Timetable。', true); event.target.value=''; return; } if (file.size > 25 * 1024 * 1024) { toast('PDF 檔案不可大於 25 MB。', true); event.target.value=''; return; } const originalText=button.textContent; button.textContent='↻ 正在讀取 PDF...'; button.setAttribute('aria-busy','true'); try { const response=await fetch('/api/import-pdf',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fileName:file.name,data:arrayBufferToBase64(await file.arrayBuffer())})}); const result=await response.json(); if (!response.ok || !Array.isArray(result.rows)) throw new Error(result.error || 'import failed'); const imported=normalizeDataset(result.rows); if (!imported.length) throw new Error('empty dataset'); resetForNewAcademicData(); dataset=imported; dataReady=true; persistUserState(); renderAll(); toast(`已清理舊資料並由 ${file.name} 更新 ${imported.length} 節課堂資料。`); } catch { toast('PDF 匯入失敗，請確認是 Master Timetable PDF，或重啟本地網站服務。', true); } finally { button.textContent=originalText; button.removeAttribute('aria-busy'); event.target.value=''; } });
-$('replaceBtn').addEventListener('click', openModal); $('closeModal').addEventListener('click', closeModal); $('cancelReplace').addEventListener('click', closeModal); $('originalSelect').addEventListener('change', fillReplacementOptions); $('replacementSelect').addEventListener('change', updatePreview);
- $('confirmReplace').addEventListener('click', () => { const original=$('originalSelect').value; const replacements=[...$('replacementSelect').selectedOptions].map(option => option.value); if (!replacements.length) { toast('請至少選擇一個替換班別。', true); return; } const otherKeys=selected.filter(key => key !== original); const error=replacements.map(replacement => validateReplacement(original,replacement)).find(Boolean) || (hasScheduleConflict([...otherKeys, ...replacements]) ? '由於課堂時間衝突，無法替換。' : null); if (error) { closeModal(); toast(error, true); return; } selected=[...otherKeys, ...replacements]; replacementKeys=[...new Set([...replacementKeys, ...replacements])]; replacementHistory.push(...replacements.map(to => ({from:original,to}))); alternativeOriginalKey=null; alternativeKey=null; alternativeKeys=[]; closeModal(); renderAll(); toast(`已替換 ${displayClass(original)}。`); });
-$('saveOriginalBtn').addEventListener('click', () => { if (!currentUser) { toast('請先登入才能儲存原有時間表。', true); return; } if (!selected.length) { toast('請先加入課堂。', true); return; } if (savedPlans.some(plan => plan.type === 'original' || plan.name === '原有計劃')) { toast('已儲存原有時間表，請編輯該時間表。儲存失敗', true); return; } const plan={id:'original-plan', name:'原有計劃', type:'original', selected:[...selected], originalKey:'', replacementKey:'', updatedAt:new Date().toISOString()}; savedPlans=[plan, ...savedPlans]; originalSelected=[...selected]; persistUserState(); renderAll(); toast('已儲存為原有計劃。'); });
-$('resetBtn').addEventListener('click', () => { alternativeOriginalKey=null; alternativeKey=null; alternativeKeys=[]; renderTimetable(); toast('已清除替換預覽。'); });
- $('savePlanBtn').addEventListener('click', () => openPlanModal()); $('saveCurrentPlanBtn').addEventListener('click', saveCurrentPlan); $('closePlanModal').addEventListener('click', () => closePlanModal()); $('cancelPlan').addEventListener('click', () => closePlanModal()); $('planOriginalSelect').addEventListener('change', () => { planDirty=true; populatePlanReplacementOptions(); }); $('planReplacementSelect').addEventListener('change', () => { planDirty=true; updatePlanPreview(); }); $('planNameInput').addEventListener('input', () => { if (editingPlanId) planDirty=true; }); $('confirmPlan').addEventListener('click', savePlan); $('closePlanInfoModal').addEventListener('click', closePlanInfo); $('cancelPlanInfo').addEventListener('click', closePlanInfo); $('savePlanInfo').addEventListener('click', savePlanInfo);
-$('closeOriginalPlanModal').addEventListener('click', closeOriginalPlanEditor); $('cancelOriginalPlan').addEventListener('click', closeOriginalPlanEditor); $('confirmOriginalPlan').addEventListener('click', saveOriginalPlanEdits);
- $('closeCourseInfoModal').addEventListener('click', closeCourseInfo); $('cancelCourseInfo').addEventListener('click', closeCourseInfo); $('saveCourseInfo').addEventListener('click', saveCourseInfo);
-$('csvInput').addEventListener('change', async event => { const file=event.target.files[0]; if (!file) return; try { const text=await file.text(); const rows=text.trim() ? text.trim().split(/\r?\n/).map(parseCsvLine) : []; const headers=(rows.shift() || []).map(h=>h.toLowerCase()); const get=(row, names) => row[headers.findIndex(h=>names.includes(h))]; const imported=normalizeDataset(rows.map(row => ({code:get(row,['course code','coursecode']),no:get(row,['class no','classno']),name:get(row,['course name','coursename'])||'',day:Number(get(row,['weekday','day'])),time:get(row,['time'])||'',room:get(row,['room'])||''}))); if (!imported.length) { toast('CSV 欄位未能辨識或沒有有效課堂資料。', true); return; } dataset=imported; dataReady=true; selected=[]; replacementKeys=[]; alternativeOriginalKey=null; alternativeKey=null; alternativeKeys=[]; renderAll(); toast(`已匯入 ${imported.length} 筆課堂資料。`); } catch { toast('CSV 讀取失敗，請確認檔案格式。', true); } finally { event.target.value=''; } });
+function parsePeriod(value, schedule) {
+  const text = value.trim().replaceAll(" ", "");
+  if (/^[1-9]$/.test(text)) return { period: Number(text) };
+  const chinese = text.match(/^第?([一二三四五六七八九])節?$/);
+  if (chinese) return { period: CHINESE_PERIODS[chinese[1]] };
 
- $('searchClassBtn').addEventListener('click', openSearchModal); $('closeSearchModal').addEventListener('click', closeSearchModal); $('cancelSearch').addEventListener('click', closeSearchModal); $('searchCourseCodeInput').addEventListener('input', updateSearchTimeOptions); $('runClassSearch').addEventListener('click', runClassSearch); $('searchTeacherBtn').addEventListener('click', openTeacherSearch); $('closeTeacherSearchModal').addEventListener('click', closeTeacherSearch); $('cancelTeacherSearch').addEventListener('click', closeTeacherSearch); $('runTeacherSearch').addEventListener('click', () => renderTeacherSearchResults($('teacherSearchInput').value)); $('teacherSearchInput').addEventListener('input', event => renderTeacherSearchResults(event.target.value)); $('addTeacherClassesBtn').addEventListener('click', openTeacherAssignment); $('closeTeacherAssignmentModal').addEventListener('click', closeTeacherAssignment); $('cancelTeacherAssignment').addEventListener('click', closeTeacherAssignment); $('teacherAssignmentNameInput').addEventListener('input', updateTeacherAssignmentOptions); $('teacherAssignmentCodeInput').addEventListener('input', updateTeacherAssignmentOptions); $('saveTeacherAssignment').addEventListener('click', saveTeacherAssignment); $('clearTeacherDataBtn').addEventListener('click', () => openConfirmAction('clearTeacher')); $('clearAcademicDataBtn').addEventListener('click', () => openConfirmAction('clearAcademic')); $('closeConfirmAction').addEventListener('click', closeConfirmAction); $('cancelConfirmAction').addEventListener('click', closeConfirmAction); $('confirmActionButton').addEventListener('click', runConfirmedAction); $('courseCatalogSearch').addEventListener('input', renderCourseCatalog); $('sidebarToggleBtn').addEventListener('click', toggleSidebar); $('sidebarCollapseBtn').addEventListener('click', toggleSidebar); $('sidebarHandleBtn').addEventListener('click', toggleSidebar); $('rulesBtn').addEventListener('click', () => openNoticeModal('rules')); $('disclaimerBtn').addEventListener('click', () => openNoticeModal('disclaimer')); $('closeNoticeModal').addEventListener('click', closeNoticeModal);
-installChangeSavePrompts();
-if (currentUser) { const state=loadUserState(currentUser); selected=state.selected; savedPlans=state.savedPlans; originalSelected=state.originalSelected; replacementHistory=state.replacementHistory; replacementKeys=state.replacementKeys; courseMeta=state.courseMeta; }
-updateUserBar();
-updateSidebarControls();
-renderAll();
-if (!currentUser) openLogin();
-else fetchUserState(currentUser).then(state => { if (!state) { currentUser=''; isAdmin=false; selected=[]; savedPlans=[]; originalSelected=[]; replacementHistory=[]; replacementKeys=[]; courseMeta={}; localStorage.removeItem('spacePlannerCurrentUser'); updateUserBar(); renderAll(); openLogin(); return; } selected=state.selected; savedPlans=state.savedPlans; originalSelected=state.originalSelected; replacementHistory=state.replacementHistory; replacementKeys=state.replacementKeys; courseMeta=state.courseMeta; isAdmin=state.isAdmin; remoteHydrated=true; updateUserBar(); renderAll(); });
-window.addEventListener('beforeunload', event => { if (editingPlanId && planDirty) { event.preventDefault(); event.returnValue=''; } });
-const dataController = new AbortController();
-const dataTimeout = setTimeout(() => dataController.abort(), 8000);
-fetch('timetable-data.json', {signal: dataController.signal})
-  .then(response => { if (!response.ok) throw new Error('data unavailable'); return response.json(); })
-  .then(fullDataset => { const normalized = normalizeDataset(fullDataset); if (!normalized.length) throw new Error('empty dataset'); dataset = normalized; dataReady = true; renderAll(); })
-  .catch(() => toast('完整課堂資料載入失敗，現正使用示範資料。', true))
-  .finally(() => clearTimeout(dataTimeout));
+  const time = text.match(/^(\d{1,2}):?(\d{2})$/);
+  if (!time) return null;
+  const hour = Number(time[1]);
+  const minute = Number(time[2]);
+  if (hour > 23 || minute > 59) return null;
+  const normalized = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+  const lesson = schedule.periods.find((item) => item.start <= normalized && normalized < item.end);
+  if (lesson) return { period: lesson.period, time: normalized };
+  const pause = schedule.non_lesson_periods.find((item) => item.start <= normalized && normalized < item.end);
+  return pause ? { pause, time: normalized } : { outside: true, time: normalized };
+}
+
+function search(event) {
+  event.preventDefault();
+  if (!timetable) return;
+
+  const values = new FormData(form);
+  const className = String(values.get("className")).trim().toUpperCase();
+  const day = String(values.get("day"));
+  const season = String(values.get("season"));
+  const schedule = timetable.schedules[season];
+  const parsed = parsePeriod(String(values.get("timeOrPeriod")), schedule);
+
+  if (!/^[1-6][A-D]$/.test(className) || !parsed || !DAYS[day] || !timetable.entries.some((entry) => entry.class === className)) {
+    errorResult();
+    return;
+  }
+
+  if (parsed.pause) {
+    showResult(`
+      <p class="result-label">${schedule.label} · ${DAYS[day]} · ${parsed.time}</p>
+      <h2 class="result-title">目前是 ${parsed.pause.kind}</h2>
+      <p class="result-note">${parsed.pause.start}–${parsed.pause.end}，此時段沒有課堂。</p>
+    `, "break");
+    return;
+  }
+
+  if (parsed.outside) {
+    showResult(`
+      <p class="result-label">${schedule.label} · ${DAYS[day]} · ${parsed.time}</p>
+      <h2 class="result-title">目前是非上課時段</h2>
+      <p class="result-note">請輸入上課時間、休息時間，或直接輸入第 1–9 節。</p>
+    `, "break");
+    return;
+  }
+
+  const entry = timetable.entries.find((item) => item.class === className && item.day === day && item.period === parsed.period);
+  if (!entry) {
+    errorResult();
+    return;
+  }
+  const periodTime = schedule.periods.find((item) => item.period === parsed.period);
+  showResult(`
+    <p class="result-label">${schedule.label} · ${className} · ${DAYS[day]}</p>
+    <h2 class="result-title">第 ${parsed.period} 節 · ${periodTime.start}–${periodTime.end}</h2>
+    <div class="detail-grid">
+      <div class="detail"><span>課堂</span><strong>${entry.subject}</strong></div>
+      <div class="detail"><span>教師</span><strong>${entry.teachers}</strong></div>
+      <div class="detail"><span>課室</span><strong>${displayRooms(entry.rooms)}</strong></div>
+    </div>
+    <p class="result-note">PDF 來源：第 ${entry.source_page} 頁 · 原格跨第 ${entry.period_span[0]}–${entry.period_span[1]} 節</p>
+  `);
+}
+
+async function loadData() {
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 8000);
+  try {
+    const response = await fetch("./timetable-data.json", {
+      cache: "no-store",
+      signal: controller.signal,
+    });
+    if (!response.ok) throw new Error("data load failed");
+    timetable = await response.json();
+    status.textContent = `已載入 ${timetable.entries.length.toLocaleString()} 筆已核對課表資料。`;
+    submitButton.disabled = false;
+  } catch {
+    status.textContent = "未能載入課表資料，請確認本機網站伺服器正在執行。";
+    showResult("<h2 class=\"result-title\">未能載入課表資料</h2>", "error");
+  } finally {
+    window.clearTimeout(timeout);
+  }
+}
+
+form.addEventListener("submit", search);
+submitButton.disabled = true;
+setTodayReminder();
+loadData();

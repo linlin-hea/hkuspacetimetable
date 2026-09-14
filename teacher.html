@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="CWGC 教師課堂查詢" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="stylesheet" href="styles.css?v=20260912-4" />
+    <title>CWGC 教師課堂查詢</title>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="site-header">
+        <div class="mark" aria-hidden="true">CW</div>
+        <div>
+          <p class="eyebrow">2026–2027</p>
+          <h1>教師課堂查詢</h1>
+        </div>
+      </header>
+
+      <nav class="mode-nav" aria-label="查詢方式">
+        <a href="index.html">按班別查詢</a>
+        <a href="classroom.html">按課室查詢</a>
+        <a class="active" aria-current="page" href="teacher.html">按教師查詢</a>
+      </nav>
+
+      <section class="search-card" aria-labelledby="search-heading">
+        <div class="card-heading">
+          <h2 id="search-heading">查詢教師</h2>
+          <p>輸入教師代碼、星期與時間或節次。</p>
+        </div>
+
+        <form id="teacher-query-form" novalidate>
+          <fieldset class="season-choice">
+            <legend>時間制度</legend>
+            <label><input type="radio" name="season" value="winter" checked /> 冬令時間</label>
+            <label><input type="radio" name="season" value="summer" /> 夏令時間</label>
+          </fieldset>
+
+          <div class="form-grid">
+            <label class="suggestion-field" for="teacher-input">教師代碼
+              <input id="teacher-input" name="teacher" autocomplete="off" placeholder="例如 THK、ccp" maxlength="4" required aria-describedby="teacher-hint" />
+              <span id="teacher-hint" class="input-hint">輸入代碼開頭可查看建議，例如輸入 T。</span>
+              <ul id="teacher-suggestions" class="suggestion-list" role="listbox" hidden></ul>
+            </label>
+            <div class="weekday-field">
+              <p id="today-reminder" class="weekday-reminder" role="status"></p>
+              <label for="teacher-day-select">星期
+                <select id="teacher-day-select" name="day" required>
+                  <option value="Mon">星期一</option>
+                  <option value="Tue">星期二</option>
+                  <option value="Wed">星期三</option>
+                  <option value="Thu">星期四</option>
+                  <option value="Fri">星期五</option>
+                </select>
+              </label>
+            </div>
+            <label for="teacher-time-input">時間或節次
+              <input id="teacher-time-input" name="timeOrPeriod" autocomplete="off" placeholder="830、8:30、1、第一節" required />
+            </label>
+            <button type="submit">搜尋教師課堂</button>
+          </div>
+        </form>
+      </section>
+
+      <p id="teacher-data-status" class="data-status" role="status">正在載入已核對教師資料…</p>
+      <section id="teacher-result" class="result-panel" aria-live="polite" hidden></section>
+
+      <section class="guide" aria-labelledby="guide-heading">
+        <h2 id="guide-heading">輸入提示</h2>
+        <ul>
+          <li>教師代碼不分大小寫；輸入開頭字母可選擇建議，例如 <code>t</code> 會列出 <code>THK</code>。</li>
+          <li>時間可輸入 <code>830</code> 或 <code>8:30</code>；節次可輸入 <code>1</code>、<code>一</code> 或 <code>第一節</code>。</li>
+          <li>小息及午膳會顯示目前狀態與該教師當日授課節次；有效課節內沒有課則顯示空堂。</li>
+          <li>不存在的教師、無效時間／節次，或超出冬令 <code>08:30–16:05</code>、夏令 <code>08:30–13:40</code> 的時間，會顯示「輸入錯誤資料無法搜索」。</li>
+        </ul>
+      </section>
+    </main>
+    <script type="module" src="teacher.js?v=20260914-1"></script>
+  </body>
+</html>

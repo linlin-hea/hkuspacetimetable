@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="CWGC 課室課堂查詢" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="stylesheet" href="styles.css?v=20260912-4" />
+    <title>CWGC 課室課堂查詢</title>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="site-header">
+        <div class="mark" aria-hidden="true">CW</div>
+        <div>
+          <p class="eyebrow">2026–2027</p>
+          <h1>課室課堂查詢</h1>
+        </div>
+      </header>
+
+      <nav class="mode-nav" aria-label="查詢方式">
+        <a href="index.html">按班別查詢</a>
+        <a class="active" aria-current="page" href="classroom.html">按課室查詢</a>
+        <a href="teacher.html">按教師查詢</a>
+      </nav>
+
+      <section class="search-card" aria-labelledby="search-heading">
+        <div class="card-heading">
+          <h2 id="search-heading">查詢課室</h2>
+          <p>輸入課室、星期與時間或節次。</p>
+        </div>
+
+        <form id="classroom-query-form" novalidate>
+          <fieldset class="season-choice">
+            <legend>時間制度</legend>
+            <label><input type="radio" name="season" value="winter" checked /> 冬令時間</label>
+            <label><input type="radio" name="season" value="summer" /> 夏令時間</label>
+          </fieldset>
+
+          <div class="form-grid">
+            <label class="suggestion-field" for="classroom-input">課室
+              <input id="classroom-input" name="classroom" autocomplete="off" placeholder="例如 PLG、PHY LAB、物理實驗室" required aria-describedby="classroom-hint" />
+              <span id="classroom-hint" class="input-hint">輸入代號、名稱或別名；例如輸入 P 可查看建議。</span>
+              <ul id="classroom-suggestions" class="suggestion-list" role="listbox" hidden></ul>
+            </label>
+            <div class="weekday-field">
+              <p id="today-reminder" class="weekday-reminder" role="status"></p>
+              <label for="classroom-day-select">星期
+                <select id="classroom-day-select" name="day" required>
+                  <option value="Mon">星期一</option>
+                  <option value="Tue">星期二</option>
+                  <option value="Wed">星期三</option>
+                  <option value="Thu">星期四</option>
+                  <option value="Fri">星期五</option>
+                </select>
+              </label>
+            </div>
+            <label for="classroom-time-input">時間或節次
+              <input id="classroom-time-input" name="timeOrPeriod" autocomplete="off" placeholder="830、8:30、1、第一節" required />
+            </label>
+            <button type="submit">搜尋課室課堂</button>
+          </div>
+        </form>
+      </section>
+
+      <p id="classroom-data-status" class="data-status" role="status">正在載入已核對課室資料…</p>
+      <section id="classroom-result" class="result-panel" aria-live="polite" hidden></section>
+
+      <section class="guide" aria-labelledby="guide-heading">
+        <h2 id="guide-heading">輸入提示</h2>
+        <ul>
+          <li>課室可使用代號、正式名稱或別名，且不分大小寫；<code>PHY LAB</code> 可搜尋 <code>PHY-L</code>。</li>
+          <li>時間可輸入 <code>830</code> 或 <code>8:30</code>；節次可輸入 <code>1</code>、<code>一</code> 或 <code>第一節</code>。</li>
+          <li>輸入不存在課室、無效時間或無效節次時，會顯示「輸入錯誤資料無法搜索」。</li>
+        </ul>
+      </section>
+
+      <section class="room-directory" aria-labelledby="directory-heading">
+        <div class="card-heading">
+          <h2 id="directory-heading">學校課室目錄</h2>
+          <p>可作為課室輸入提示。</p>
+        </div>
+        <div class="directory-scroll">
+          <table>
+            <thead><tr><th>課室代號</th><th>正式名稱</th><th>可搜尋名稱</th></tr></thead>
+            <tbody id="room-directory-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="classroom.js?v=20260914-1"></script>
+  </body>
+</html>
