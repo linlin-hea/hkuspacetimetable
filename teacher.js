@@ -10,6 +10,7 @@ const teacherInput = document.querySelector("#teacher-input");
 const suggestions = document.querySelector("#teacher-suggestions");
 const todayReminder = document.querySelector("#today-reminder");
 let teacherData;
+let teacherDirectory;
 
 function setTodayReminder() {
   const today = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][new Date().getDay()];
@@ -18,10 +19,8 @@ function setTodayReminder() {
     todayReminder.innerHTML = `今天是<strong>${label}</strong>，請手動選擇上課日。`;
     return;
   }
-  todayReminder.innerHTML = `今天是<strong>${DAYS[today]}</strong>。<button type="button">使用今天的星期</button>`;
-  todayReminder.querySelector("button").addEventListener("click", () => {
-    form.querySelector("#teacher-day-select").value = today;
-  });
+  form.querySelector("#teacher-day-select").value = today;
+  todayReminder.innerHTML = `今天是<strong>${DAYS[today]}</strong>，已自動選取。`;
 }
 
 function escapeHtml(value) {
@@ -44,6 +43,26 @@ function showResult(content, state = "") {
   result.hidden = false;
   result.className = `result-panel ${state}`.trim();
   result.innerHTML = content;
+}
+
+function teacherProfileBlock(teacher) {
+  const profile = teacherDirectory.teachers[teacher];
+  const chineseName = profile.chinese_name || "未提供";
+  return `
+    <section class="teacher-profile" aria-label="教師資料">
+      <p class="profile-label">教師資料</p>
+      <div class="teacher-profile-grid">
+        <div><span>教師代碼：</span><strong>${escapeHtml(teacher)}</strong></div>
+        <div><span>中文姓名：</span><strong>${escapeHtml(chineseName)}</strong></div>
+        <div><span>英文姓名：</span><strong>${escapeHtml(profile.english_name)}</strong></div>
+        <div><span>教員室座位：</span><strong>${escapeHtml(profile.seat)}</strong></div>
+      </div>
+    </section>
+  `;
+}
+
+function showTeacherResult(teacher, content, state = "") {
+  showResult(`${teacherProfileBlock(teacher)}${content}`, state);
 }
 
 function errorResult() {
@@ -129,7 +148,7 @@ function search(event) {
     return;
   }
   if (!timeOrPeriod) {
-    showResult(`
+    showTeacherResult(teacher, `
       <p class="result-label">${schedule.label} · ${escapeHtml(teacher)} · ${DAYS[day]}</p>
       <h2 class="result-title">${escapeHtml(teacher)} 當天的授課節次</h2>
       <p class="result-note">未輸入時間或節次，以下列出當天所有已排定課堂。</p>
@@ -144,7 +163,7 @@ function search(event) {
     return;
   }
   if (parsed.pause) {
-    showResult(`
+    showTeacherResult(teacher, `
       <p class="result-label">${schedule.label} · ${escapeHtml(teacher)} · ${DAYS[day]} · ${parsed.time}</p>
       <h2 class="result-title">目前是 ${pauseName(parsed.pause)}</h2>
       <p class="result-note">${parsed.pause.start}–${parsed.pause.end}，目前沒有課堂。</p>
@@ -153,7 +172,7 @@ function search(event) {
     return;
   }
   if (parsed.transition) {
-    showResult(`
+    showTeacherResult(teacher, `
       <p class="result-label">${schedule.label} · ${escapeHtml(teacher)} · ${DAYS[day]} · ${parsed.time}</p>
       <h2 class="result-title">目前沒有課堂安排</h2>
       <p class="result-note">此時間位於課節與休息時段之間。</p>
@@ -169,7 +188,7 @@ function search(event) {
     return;
   }
   if (entry.status === "empty") {
-    showResult(`
+    showTeacherResult(teacher, `
       <p class="result-label">${schedule.label} · ${escapeHtml(teacher)} · ${DAYS[day]}</p>
       <h2 class="result-title">${escapeHtml(teacher)} 目前是空堂</h2>
       <p class="result-note">第 ${parsed.period} 節 · ${periodTime.start}–${periodTime.end}</p>
@@ -177,7 +196,7 @@ function search(event) {
     `, "break");
     return;
   }
-  showResult(`
+  showTeacherResult(teacher, `
     <p class="result-label">${schedule.label} · ${escapeHtml(teacher)} · ${DAYS[day]}</p>
     <h2 class="result-title">第 ${parsed.period} 節 · ${periodTime.start}–${periodTime.end}</h2>
     <div class="detail-grid">
@@ -194,9 +213,12 @@ async function loadData() {
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), 8000);
   try {
-    const response = await fetch("./teacher-timetable-data.json", { cache: "no-store", signal: controller.signal });
-    if (!response.ok) throw new Error("teacher data load failed");
-    teacherData = await response.json();
+    const [response, directoryResponse] = await Promise.all([
+      fetch("./teacher-timetable-data.json", { cache: "no-store", signal: controller.signal }),
+      fetch("./teacher-directory.json", { cache: "no-store", signal: controller.signal }),
+    ]);
+    if (!response.ok || !directoryResponse.ok) throw new Error("teacher data load failed");
+    [teacherData, teacherDirectory] = await Promise.all([response.json(), directoryResponse.json()]);
     status.textContent = `已載入 ${teacherData.entries.length.toLocaleString()} 個已核對教師時段資料。`;
     submitButton.disabled = false;
   } catch {

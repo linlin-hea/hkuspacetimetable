@@ -15,10 +15,8 @@ function setTodayReminder() {
     todayReminder.innerHTML = `今天是<strong>${label}</strong>，請手動選擇上課日。`;
     return;
   }
-  todayReminder.innerHTML = `今天是<strong>${DAYS[today]}</strong>。<button type="button">使用今天的星期</button>`;
-  todayReminder.querySelector("button").addEventListener("click", () => {
-    form.querySelector("#day-select").value = today;
-  });
+  form.querySelector("#day-select").value = today;
+  todayReminder.innerHTML = `今天是<strong>${DAYS[today]}</strong>，已自動選取。`;
 }
 
 function displayRooms(rooms) {

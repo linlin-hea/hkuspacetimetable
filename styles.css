@@ -54,6 +54,12 @@ button:focus-visible { outline: 0.2rem solid #f3bd45; outline-offset: 0.15rem; }
 .result-panel.break { border-color: #e8c774; background: #fffaf0; }
 .result-label { margin-bottom: 0.4rem; color: #536f83; font-weight: 700; }
 .result-title { margin: 0 0 1.35rem; font-size: clamp(1.3rem, 3vw, 1.7rem); }
+.teacher-profile { margin-bottom: 1.35rem; padding: 1.2rem; border: 1px solid #9bcbb0; border-radius: 0.7rem; background: #eef9f1; }
+.profile-label { margin: 0 0 0.85rem; color: #286044; font-size: 1.05rem; font-weight: 800; }
+.teacher-profile-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); gap: 0.85rem; }
+.teacher-profile-grid div { min-width: 0; padding: 0.7rem 0.8rem; border-radius: 0.55rem; background: #fff; }
+.teacher-profile-grid span { display: block; margin-bottom: 0.3rem; color: #3c7055; font-size: 0.96rem; font-weight: 700; }
+.teacher-profile-grid strong { display: block; overflow-wrap: anywhere; font-size: 1.12rem; line-height: 1.5; }
 .detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: 0.75rem; }
 .detail { min-width: 0; min-height: 5.4rem; padding: 0.8rem; border-radius: 0.7rem; background: #eef6fa; }
 .detail span { display: block; margin-bottom: 0.45rem; color: #516d82; font-size: 0.83rem; font-weight: 700; }
