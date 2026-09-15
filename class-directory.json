@@ -1,0 +1,36 @@
+{
+  "forms": {
+    "1": { "Form Coordinator": ["Wan Hoi Ning (WHN) 尹海寜"], "ACD FC": ["Ip Hung Kwan (IHK) 葉鴻堃"], "GCD FC": ["Chan Chung Pong (CCP) 陳仲邦", "Wong Wut Kiu (WWK) 黃活蕎", "Tsang Sam (TSM) 曾琛", "Cheng Sam Long (CSL) 鄭心朗"], "DID FC": ["Soen Yi Wun (SYW) 孫依媛", "Ng Mei Lan (NML) 吳美蘭"] },
+    "2": { "Form Coordinator": ["Leung Yat Tung Eda (LYT) 梁日東"], "ACD FC": ["Lam Nga Fung (LNF) 林雅楓"], "GCD FC": ["Chan Chung Pong (CCP) 陳仲邦", "Wong Wut Kiu (WWK) 黃活蕎", "Tsang Sam (TSM) 曾琛", "Cheng Sam Long (CSL) 鄭心朗"], "DID FC": ["Leung Yat Tung Eda (LYT) 梁日東", "Tseng Tsz Ching Winter (TTC) 鄭子情"] },
+    "3": { "Form Coordinator": ["Wen Hua Yan (WHY) 温華恩"], "ACD FC": ["Tang Hoi Kei (THK) 鄧凱淇"], "GCD FC": ["Ip Ho Sze (IHS) 葉浩斯", "Lei Anlin, Arlene (LAL) 雷安琳"], "DID FC": ["Fung Sze Yeuk (FSY) 馮思約", "Chan Wing Keung Benjamin (CWK) 陳永強"] },
+    "4": { "Form Coordinator": ["Wong Oi Man (WOM) 黃愛敏"], "ACD FC": ["Chu Kut Leung (CHKL) 朱吉樑"], "GCD FC": ["Ip Ho Sze (IHS) 葉浩斯", "Lei Anlin, Arlene (LAL) 雷安琳"], "DID FC": ["Tang Hoi Kei (THK) 鄧凱淇"] },
+    "5": { "Form Coordinator": ["Leung Wai Man (LWM) 梁偉民"], "ACD FC": ["Mak Kim Yee (MKY) 麥劍儀"], "GCD FC": ["Tong Ka Ho (TKH) 唐家豪", "Lo On Ki (LOK) 盧銨淇"], "DID FC": ["Tang Ming Yan Timothy (TMY) 鄧明恩"] },
+    "6": { "Form Coordinator": ["Ngan Yin Ling (NYL) 顏燕玲"], "ACD FC": ["Wong Hei Tung (WHT)黃希彤"], "GCD FC": ["Tong Ka Ho (TKH) 唐家豪", "Lo On Ki (LOK) 盧銨淇"], "DID FC": ["Chan Hiu Tung (CHT) 陳曉彤", "Fung Sze Yeuk (FSY) 馮思約"] }
+  },
+  "classes": {
+    "1A": { "room": "101", "class_teachers": ["Ng Wai Yu Anissa (NWU) 吳瑋瑜", "Tsang Sam (TSM) 曾琛"] },
+    "1B": { "room": "102", "class_teachers": ["Chan Chung Pong (CCP) 陳仲邦", "Ng Mei Lan (NML) 吳美蘭"] },
+    "1C": { "room": "103", "class_teachers": ["Wong Wut Kiu (WWK) 黃活蕎", "Li Chun Ho Edwin (LCH) 李浚豪"] },
+    "1D": { "room": "104", "class_teachers": ["Wu Wing Kam (UWK) 吳詠琴", "Lei Anlin, Arlene (LAL) 雷安琳", "Wong Fu Wa (WFW) 黃富華"] },
+    "2A": { "room": "201", "class_teachers": ["Choy Tsz Kit (CTK) 蔡子傑", "Tseng Tsz Ching Winter (TTC) 鄭子情"] },
+    "2B": { "room": "202", "class_teachers": ["Ng Siu Hong (NSH) 吳兆康", "So Hiu Ching (SHC) 蘇曉晴"] },
+    "2C": { "room": "203", "class_teachers": ["Chui Wai Lam Nathan (CWL) 徐尉藍", "Wong Yuet Yee (WYE) 黃悅兒"] },
+    "2D": { "room": "204", "class_teachers": ["Cheng Sam Long (CSL) 鄭心朗", "Chan Wing Keung Benjamin (CWK) 陳永強", "Soen Yi Wun (SYW) 孫依媛"] },
+    "3A": { "room": "405", "class_teachers": ["Ip Ho Sze (IHS) 葉浩斯", "Lui Kwan Lok (LKL) 呂君諾"] },
+    "3B": { "room": "305", "class_teachers": ["Chan Kin Ying (CKI) 陳健瑩", "Ip Hung Kwan (IHK) 葉鴻堃"] },
+    "3C": { "room": "205", "class_teachers": ["Li Chak Sum (LCS) 李澤森", "Lam Nga Fung (LNF) 林雅楓"] },
+    "3D": { "room": "105", "class_teachers": ["Fung Sze Yeuk (FSY) 馮思約", "Tsang Tsz Hin (TTH) 曾梓軒", "Wong Yeuk Hang (WYH) 黃躍恒"] },
+    "4A": { "room": "406", "class_teachers": ["Li Ka Ki (LKK) 李嘉琪", "Lai Ming Hon (LMH) 黎名翰"] },
+    "4B": { "room": "306", "class_teachers": ["Mak Kim Yee (MKY) 麥劍儀", "Yip Man Kit (YMK) 葉文杰"] },
+    "4C": { "room": "206", "class_teachers": ["Chan Hiu Tung (CHT) 陳曉彤", "Tang Hoi Kei (THK) 鄧凱淇"] },
+    "4D": { "room": "106", "class_teachers": ["Chu Kut Leung (CHKL) 朱吉樑", "Tam Sin (TSI) 譚茜"] },
+    "5A": { "room": "301", "class_teachers": ["Man Yat Hin Jachin (MYH) 文溢軒", "Yam Kit Ming (YKM) 任傑銘"] },
+    "5B": { "room": "302", "class_teachers": ["Cheng Ka Kwan (CKK) 鄭嘉韵", "Tong Ka Ho (TKH) 唐家豪"] },
+    "5C": { "room": "303", "class_teachers": ["Tang Ming Yan Timothy (TMY) 鄧明恩", "Tang Wai Sin (TWS) 鄧惠倩"] },
+    "5D": { "room": "304", "class_teachers": ["Ku Kai Chiu (KKC) 古啟釗", "Lo On Ki (LOK) 盧銨淇"] },
+    "6A": { "room": "401", "class_teachers": ["Ho Wang Fung (HWF) 何泓鋒"] },
+    "6B": { "room": "402", "class_teachers": ["Wong Kar Wing Karen (WKI) 黃家穎"] },
+    "6C": { "room": "403", "class_teachers": ["Suen Yuen Sin (SYI) 孫琬茜"] },
+    "6D": { "room": "404", "class_teachers": ["Wong Hei Tung (WHT)黃希彤"] }
+  }
+}

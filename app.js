@@ -7,6 +7,7 @@ const status = document.querySelector("#data-status");
 const result = document.querySelector("#result");
 const todayReminder = document.querySelector("#today-reminder");
 let timetable;
+let classDirectory;
 
 function setTodayReminder() {
   const today = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][new Date().getDay()];
@@ -21,6 +22,54 @@ function setTodayReminder() {
 
 function displayRooms(rooms) {
   return rooms.split(",").map((room) => /^\d+$/.test(room) ? `${room}室` : room).join("、");
+}
+
+function classProfileBlock(className) {
+  const profile = classDirectory.classes[className];
+  const formCoordinators = classDirectory.forms[className[0]];
+  const coordinatorItems = Object.entries(formCoordinators).map(([role, teachers]) => `
+    <div>
+      <span>${role}：</span>
+      <ol class="teacher-name-list">${teachers.map((teacher) => `<li>${teacher}</li>`).join("")}</ol>
+    </div>
+  `).join("");
+
+  return `
+    <section class="class-profile" aria-label="${className} 班別資料">
+      <p class="profile-label">班別資料</p>
+      <div class="class-profile-grid">
+        <div><span>班別：</span><strong>${className}</strong></div>
+        <div><span>班課室：</span><strong>${profile.room}室</strong></div>
+        <div class="class-teacher-detail"><span>班主任：</span><strong>${profile.class_teachers.join("、")}</strong></div>
+      </div>
+      <p class="coordinator-heading">級別統籌</p>
+      <div class="coordinator-grid">${coordinatorItems}</div>
+    </section>
+  `;
+}
+
+function dailyLessonsBlock(className, day, schedule, highlightPeriod) {
+  const entries = timetable.entries
+    .filter((item) => item.class === className && item.day === day)
+    .sort((a, b) => a.period - b.period);
+  const rows = entries.map((entry) => {
+    const periodTime = schedule.periods.find((item) => item.period === entry.period);
+    const highlight = entry.period === highlightPeriod ? " daily-lessons__current" : "";
+    return `
+      <li class="${highlight.trim()}">
+        <strong>第 ${entry.period} 節 · ${periodTime.start}–${periodTime.end}</strong>
+        <p><span>課堂</span>${entry.subject}</p>
+        <p><span>教師</span>${entry.teachers}</p>
+        <p><span>課室</span>${displayRooms(entry.rooms)}</p>
+      </li>
+    `;
+  }).join("");
+  return `
+    <section class="daily-lessons" aria-label="${className} ${DAYS[day]} 時間表">
+      <h3>${className} · ${DAYS[day]} 的時間表</h3>
+      <ul>${rows}</ul>
+    </section>
+  `;
 }
 
 function showResult(content, state = "") {
@@ -64,27 +113,35 @@ function search(event) {
   const day = String(values.get("day"));
   const season = String(values.get("season"));
   const schedule = timetable.schedules[season];
-  const parsed = parsePeriod(String(values.get("timeOrPeriod")), schedule);
+  const timeOrPeriod = String(values.get("timeOrPeriod")).trim();
+  const parsed = timeOrPeriod ? parsePeriod(timeOrPeriod, schedule) : null;
 
-  if (!/^[1-6][A-D]$/.test(className) || !parsed || !DAYS[day] || !timetable.entries.some((entry) => entry.class === className)) {
+  if (!/^[1-6][A-D]$/.test(className) || !DAYS[day] || !classDirectory.classes[className] || !timetable.entries.some((entry) => entry.class === className) || (timeOrPeriod && !parsed)) {
     errorResult();
     return;
   }
 
+  if (!parsed) {
+    showResult(`${classProfileBlock(className)}${dailyLessonsBlock(className, day, schedule)}`);
+    return;
+  }
+
   if (parsed.pause) {
-    showResult(`
+    showResult(`${classProfileBlock(className)}
       <p class="result-label">${schedule.label} · ${DAYS[day]} · ${parsed.time}</p>
       <h2 class="result-title">目前是 ${parsed.pause.kind}</h2>
       <p class="result-note">${parsed.pause.start}–${parsed.pause.end}，此時段沒有課堂。</p>
+      ${dailyLessonsBlock(className, day, schedule)}
     `, "break");
     return;
   }
 
   if (parsed.outside) {
-    showResult(`
+    showResult(`${classProfileBlock(className)}
       <p class="result-label">${schedule.label} · ${DAYS[day]} · ${parsed.time}</p>
       <h2 class="result-title">目前是非上課時段</h2>
       <p class="result-note">請輸入上課時間、休息時間，或直接輸入第 1–9 節。</p>
+      ${dailyLessonsBlock(className, day, schedule)}
     `, "break");
     return;
   }
@@ -95,7 +152,7 @@ function search(event) {
     return;
   }
   const periodTime = schedule.periods.find((item) => item.period === parsed.period);
-  showResult(`
+  showResult(`${classProfileBlock(className)}
     <p class="result-label">${schedule.label} · ${className} · ${DAYS[day]}</p>
     <h2 class="result-title">第 ${parsed.period} 節 · ${periodTime.start}–${periodTime.end}</h2>
     <div class="detail-grid">
@@ -104,6 +161,7 @@ function search(event) {
       <div class="detail"><span>課室</span><strong>${displayRooms(entry.rooms)}</strong></div>
     </div>
     <p class="result-note">PDF 來源：第 ${entry.source_page} 頁 · 原格跨第 ${entry.period_span[0]}–${entry.period_span[1]} 節</p>
+    ${dailyLessonsBlock(className, day, schedule, parsed.period)}
   `);
 }
 
@@ -111,12 +169,19 @@ async function loadData() {
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), 8000);
   try {
-    const response = await fetch("./timetable-data.json", {
-      cache: "no-store",
-      signal: controller.signal,
-    });
-    if (!response.ok) throw new Error("data load failed");
-    timetable = await response.json();
+    const [timetableResponse, directoryResponse] = await Promise.all([
+      fetch("./timetable-data.json", {
+        cache: "no-store",
+        signal: controller.signal,
+      }),
+      fetch("./class-directory.json", {
+        cache: "no-store",
+        signal: controller.signal,
+      }),
+    ]);
+    if (!timetableResponse.ok || !directoryResponse.ok) throw new Error("data load failed");
+    timetable = await timetableResponse.json();
+    classDirectory = await directoryResponse.json();
     status.textContent = `已載入 ${timetable.entries.length.toLocaleString()} 筆已核對課表資料。`;
     submitButton.disabled = false;
   } catch {

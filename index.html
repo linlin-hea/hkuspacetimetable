@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="CWGC 班別課堂查詢" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-    <link rel="stylesheet" href="styles.css?v=20260912-4" />
+    <link rel="stylesheet" href="styles.css?v=20260915-5" />
     <title>CWGC 班別課堂查詢</title>
   </head>
   <body>
@@ -27,7 +27,7 @@
       <section class="search-card" aria-labelledby="search-heading">
         <div class="card-heading">
           <h2 id="search-heading">查詢課堂</h2>
-          <p>輸入班別與時間或節次。</p>
+          <p>輸入班別；時間或節次可選填。</p>
         </div>
 
         <form id="query-form" novalidate>
@@ -54,7 +54,7 @@
               </label>
             </div>
             <label for="time-input">時間或節次
-              <input id="time-input" name="timeOrPeriod" autocomplete="off" placeholder="830、8:30、1、第一節" required />
+              <input id="time-input" name="timeOrPeriod" autocomplete="off" placeholder="選填：830、8:30、1、第一節" />
             </label>
             <button type="submit">搜尋課堂</button>
           </div>
@@ -68,11 +68,11 @@
         <h2 id="guide-heading">輸入提示</h2>
         <ul>
           <li>班別不分大小寫，例如 <code>1a</code> 會視為 <code>1A</code>。</li>
-          <li>時間可輸入 <code>830</code> 或 <code>8:30</code>；節次可輸入 <code>1</code>、<code>一</code> 或 <code>第一節</code>。</li>
+          <li>只輸入班別即可查看班主任、班課室、級別統籌及當天時間表。時間可輸入 <code>830</code> 或 <code>8:30</code>；節次可輸入 <code>1</code>、<code>一</code> 或 <code>第一節</code>。</li>
           <li>輸入不存在的班別、無效時間或無效節次時，會顯示「輸入錯誤資料無法搜索」。</li>
         </ul>
       </section>
     </main>
-    <script type="module" src="app.js?v=20260915-1"></script>
+    <script type="module" src="app.js?v=20260915-3"></script>
   </body>
 </html>
