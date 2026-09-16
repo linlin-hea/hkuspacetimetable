@@ -1,5 +1,7 @@
 const DAYS = { Mon: "星期一", Tue: "星期二", Wed: "星期三", Thu: "星期四", Fri: "星期五" };
 const CHINESE_PERIODS = { "一": 1, "二": 2, "三": 3, "四": 4, "五": 5, "六": 6, "七": 7, "八": 8, "九": 9 };
+const SEASON_STORAGE_KEY = "cwgc-selected-season";
+const SUMMER_AUTO_DATE_KEY = "cwgc-summer-auto-date";
 
 const form = document.querySelector("#classroom-query-form");
 const submitButton = form.querySelector('button[type="submit"]');
@@ -11,6 +13,49 @@ const suggestions = document.querySelector("#classroom-suggestions");
 const directoryBody = document.querySelector("#room-directory-body");
 let classroomData;
 
+function saveSeason(season) {
+  try {
+    localStorage.setItem(SEASON_STORAGE_KEY, season);
+  } catch {
+    // 儲存空間不可用時仍可正常使用本頁查詢。
+  }
+}
+
+function savedSeason() {
+  try {
+    const season = localStorage.getItem(SEASON_STORAGE_KEY);
+    return season === "winter" || season === "summer" ? season : null;
+  } catch {
+    return null;
+  }
+}
+
+function todayKey() {
+  const date = new Date();
+  return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+}
+
+function summerWasAutoSetToday() {
+  try {
+    return localStorage.getItem(SUMMER_AUTO_DATE_KEY) === todayKey();
+  } catch {
+    return false;
+  }
+}
+
+function markSummerAutoSetToday() {
+  try {
+    localStorage.setItem(SUMMER_AUTO_DATE_KEY, todayKey());
+  } catch {
+    // 儲存空間不可用時仍可正常使用本頁查詢。
+  }
+}
+
+function setSeason(season) {
+  const option = form.querySelector(`input[name="season"][value="${season}"]`);
+  if (option) option.checked = true;
+}
+
 function setTodayReminder() {
   const today = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][new Date().getDay()];
   if (!DAYS[today]) {
@@ -19,6 +64,19 @@ function setTodayReminder() {
     return;
   }
   form.querySelector("#classroom-day-select").value = today;
+  if (today === "Wed" && !summerWasAutoSetToday()) {
+    setSeason("summer");
+    saveSeason("summer");
+    markSummerAutoSetToday();
+    todayReminder.innerHTML = `今天是<strong>星期三</strong>，走<strong>夏令時間</strong>，已自動設定。`;
+    return;
+  }
+  const season = savedSeason();
+  if (season) setSeason(season);
+  if (today === "Wed") {
+    todayReminder.innerHTML = `今天是<strong>星期三</strong>，已保留你選擇的時間制度。`;
+    return;
+  }
   todayReminder.innerHTML = `今天是<strong>${DAYS[today]}</strong>，已自動選取。`;
 }
 
@@ -163,6 +221,9 @@ document.addEventListener("click", (event) => {
   if (!event.target.closest(".suggestion-field")) suggestions.hidden = true;
 });
 form.addEventListener("submit", search);
+form.addEventListener("change", (event) => {
+  if (event.target.name === "season") saveSeason(event.target.value);
+});
 submitButton.disabled = true;
 setTodayReminder();
 loadData();
