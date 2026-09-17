@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="CWGC 班別及教師同時查詢" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="stylesheet" href="styles.css?v=20260917-1" />
+    <title>CWGC 班別及教師同時查詢</title>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="site-header">
+        <div class="mark" aria-hidden="true">CW</div>
+        <div>
+          <p class="eyebrow">2026–2027</p>
+          <h1>班別及教師同時查詢</h1>
+        </div>
+      </header>
+
+      <nav class="mode-nav" aria-label="查詢方式">
+        <a href="index.html">按班別查詢</a>
+        <a href="classroom.html">按課室查詢</a>
+        <a href="teacher.html">按教師查詢</a>
+        <a class="active" aria-current="page" href="combined.html">同時查詢</a>
+      </nav>
+
+      <section class="search-card combined-controls" aria-labelledby="controls-heading">
+        <div class="card-heading">
+          <h2 id="controls-heading">共用查詢設定</h2>
+          <p>兩邊查詢會使用相同的星期與時間制度。</p>
+        </div>
+        <fieldset class="season-choice" id="season-choice">
+          <legend>時間制度</legend>
+          <label><input type="radio" name="season" value="winter" checked /> 冬令時間</label>
+          <label><input type="radio" name="season" value="summer" /> 夏令時間</label>
+        </fieldset>
+        <div class="form-grid">
+          <div class="weekday-field">
+            <p id="today-reminder" class="weekday-reminder" role="status"></p>
+            <label for="combined-day-select">星期
+              <select id="combined-day-select" name="day" required>
+                <option value="Mon">星期一</option>
+                <option value="Tue">星期二</option>
+                <option value="Wed">星期三</option>
+                <option value="Thu">星期四</option>
+                <option value="Fri">星期五</option>
+              </select>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <p id="combined-data-status" class="data-status" role="status">正在載入已核對課表資料…</p>
+      <section class="combined-query-grid" aria-label="班別及教師同時查詢">
+        <section class="combined-query-card" aria-labelledby="class-query-heading">
+          <h2 id="class-query-heading">班別查詢</h2>
+          <p>時間或節次可留空，以查看該班當天時間表。</p>
+          <form id="combined-class-form" novalidate>
+            <label for="combined-class-input">班別
+              <input id="combined-class-input" name="className" autocomplete="off" placeholder="例如 1A、6d" maxlength="2" required />
+            </label>
+            <label for="combined-class-time-input">時間或節次（可留空）
+              <input id="combined-class-time-input" name="timeOrPeriod" autocomplete="off" placeholder="830、8:30、1、第一節" />
+            </label>
+            <button type="submit">搜尋班別</button>
+          </form>
+          <section id="combined-class-result" class="result-panel" aria-live="polite" hidden></section>
+        </section>
+
+        <section class="combined-query-card" aria-labelledby="teacher-query-heading">
+          <h2 id="teacher-query-heading">教師查詢</h2>
+          <p>時間或節次可留空，以查看該教師當天授課節次。</p>
+          <form id="combined-teacher-form" novalidate>
+            <label for="combined-teacher-input">教師代碼
+              <input id="combined-teacher-input" name="teacher" autocomplete="off" placeholder="例如 THK、ccp" maxlength="4" required list="combined-teacher-codes" />
+              <datalist id="combined-teacher-codes"></datalist>
+            </label>
+            <label for="combined-teacher-time-input">時間或節次（可留空）
+              <input id="combined-teacher-time-input" name="timeOrPeriod" autocomplete="off" placeholder="830、8:30、1、第一節" />
+            </label>
+            <button type="submit">搜尋教師</button>
+          </form>
+          <section id="combined-teacher-result" class="result-panel" aria-live="polite" hidden></section>
+        </section>
+      </section>
+    </main>
+    <script type="module" src="combined.js?v=20260917-1"></script>
+  </body>
+</html>

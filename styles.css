@@ -16,7 +16,7 @@ button, input, select { font: inherit; }
 h1, h2, p { margin-top: 0; }
 h1 { margin-bottom: 0; font-size: clamp(1.7rem, 4vw, 2.25rem); }
 
-.mode-nav { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.55rem; margin-bottom: 1.35rem; }
+.mode-nav { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.55rem; margin-bottom: 1.35rem; }
 .mode-nav a { min-width: 0; padding: 0.75rem 0.9rem; border: 1px solid #b8cad6; border-radius: 0.65rem; color: #31556f; overflow-wrap: anywhere; text-align: center; font-weight: 800; text-decoration: none; }
 .mode-nav a:hover { background: #e5f0f6; }
 .mode-nav a.active { border-color: #12466b; background: #12466b; color: #fff; }
@@ -81,6 +81,16 @@ button:focus-visible { outline: 0.2rem solid #f3bd45; outline-offset: 0.15rem; }
 .daily-lessons li p { margin: 0.3rem 0 0; }
 .daily-lessons li p span { display: inline-block; min-width: 3.4rem; color: #506f84; font-weight: 800; }
 .daily-lessons li.daily-lessons__current { border: 2px solid #12466b; background: #dff0f8; }
+.combined-query-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.4rem; align-items: start; }
+.combined-query-card { min-width: 0; padding: clamp(1.1rem, 3vw, 1.45rem); border: 1px solid #cad9e2; border-radius: 1rem; background: #fff; box-shadow: 0 0.6rem 1.8rem rgb(23 60 85 / 0.08); }
+.combined-query-card h2 { margin-bottom: 0.35rem; font-size: 1.35rem; }
+.combined-query-card > p { margin-bottom: 1.1rem; color: #557086; }
+.combined-query-card form { display: grid; gap: 0.9rem; }
+.combined-query-card label { display: grid; gap: 0.42rem; color: #24465e; font-size: 0.95rem; font-weight: 700; }
+.combined-query-card button { width: 100%; }
+.combined-query-card .result-panel { margin-top: 1.1rem; box-shadow: none; }
+.combined-controls { margin-bottom: 1.35rem; }
+.combined-controls .form-grid { grid-template-columns: minmax(0, 1fr); max-width: 32rem; }
 .daily-lessons--comparison { border-top-color: #d7c4e7; }
 .daily-lessons--comparison h3 { color: #5c347c; }
 .daily-lessons--comparison li { background: #f5effa; color: #593875; }
@@ -110,6 +120,7 @@ code { padding: 0.08rem 0.25rem; border-radius: 0.2rem; background: #e5eef4; col
   .site-header { margin-bottom: 1.35rem; }
   .card-heading p { margin-top: 0.15rem; text-align: left; }
   .form-grid { grid-template-columns: 1fr; }
+  .combined-query-grid { grid-template-columns: 1fr; }
   .suggestion-list { top: calc(100% - 1.5rem); }
 }
 
